@@ -1,10 +1,19 @@
+"""
+ExplanationPayload dataclass used by this module
+"""
+
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 from typing import Optional, Dict
 
+
 @dataclass
 class ExplanationPayload:
+    """
+    dataclass used to store data for functions
+    """
+
     category: str  # Required
     dated_on: date  # Required
     gross_value: Decimal  # Required

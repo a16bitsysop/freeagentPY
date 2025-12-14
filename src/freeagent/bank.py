@@ -1,53 +1,67 @@
+"""
+This module provides the BankAPI class to retreive information
+about bank accounts on freeagent
+"""
+
 from base64 import b64encode
-from dataclasses import asdict, is_dataclass
-from datetime import date, datetime
-from decimal import Decimal
 from pathlib import Path
+from typing import Any
 
 from .base import FreeAgentBase
 from .payload import ExplanationPayload
 
-def serialize_for_api(obj):
-    """
-    Convert a dataclass object into a FreeAgent API-compatible dict.
-    Only accepts dataclasses.
-    """
-    if not is_dataclass(obj):
-        raise TypeError("Expected a dataclass instance")
-
-    obj_dict = asdict(obj)
-
-    def convert(val):
-        if isinstance(val, Decimal):
-            return str(val)
-        if isinstance(val, (date, datetime)):
-            return val.isoformat()
-        if isinstance(val, dict):
-            return {k: convert(v) for k, v in val.items()}
-        if isinstance(val, list):
-            return [convert(i) for i in val]
-        return val
-
-    return {k: convert(v) for k, v in obj_dict.items() if v is not None}
 
 class BankAPI(FreeAgentBase):
-    def __init__(self, parent):
+    """
+    BankAPI class to retreive information
+    about bank accounts on freeagent
+    """
+
+    def __init__(self, parent):  # pylint: disable=super-init-not-called
+        """
+        Initialize the BankAPI class
+        """
         self.parent = parent  # the main FreeAgent instance
 
-    def _check_file_size(self, path: Path):
-        MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024  # 5 MB
+    def _check_file_size(self, path: Path) -> int:
+        """
+        Helper funtion to check file size for attaching files to explanations
+
+        :param path: pathlike Path of the file to check
+
+        :return: filesize in bytes
+        :raises ValueError: if the filesize is larger than 5MB (freeagent limit)
+        """
+        max_attachment_size = 5 * 1024 * 1024  # 5 MB
         size = path.stat().st_size
-        if size > MAX_ATTACHMENT_SIZE:
-            raise ValueError(f"Attachment too large ({size} bytes). Max allowed is 5 MB.")
+        if size > max_attachment_size:
+            raise ValueError(
+                f"Attachment too large ({size} bytes). Max allowed is 5 MB."
+            )
         return size
 
     def _encode_file_base64(self, path: Path) -> str:
+        """
+        Encode the passed file as base64 after checking size
+
+        :param path: pathlike Path of the file to encode
+
+        :return: string of the encoded file
+        """
         self._check_file_size(path)
         with path.open("rb") as f:
             return b64encode(f.read()).decode("utf-8")
 
     def _get_filetype(self, filename: Path) -> str:
-        ALLOWED_TYPES = {
+        """
+        Guess the filetype based on dot extension of name
+
+        :param filename: pathlike Path of the file to guess
+
+        :return: string of the filetype
+        :raises ValueError: if file is not a type supported by freeagent
+        """
+        allowed_types = {
             ".pdf": "application/x-pdf",
             ".png": "image/x-png",
             ".jpeg": "image/jpeg",
@@ -55,15 +69,23 @@ class BankAPI(FreeAgentBase):
             ".gif": "image/gif",
         }
         # Guess FreeAgent content type
-        content_type = ALLOWED_TYPES.get(filename.suffix.lower())
+        content_type = allowed_types.get(filename.suffix.lower())
         if not content_type:
-            raise ValueError(f"Unsupported file type for FreeAgent: {path.suffix}")
+            raise ValueError(f"Unsupported file type for FreeAgent: {filename.suffix}")
 
         return content_type
 
-    def attach_file_to_explanation(self, payload: ExplanationPayload, path, description=None):
-        # freeagent supports:
-        # image/x-png image/jpeg image/jpg image/gif application/x-pdf
+    def attach_file_to_explanation(
+        self, payload: ExplanationPayload, path: Path, description: str = None
+    ):
+        """
+        Attach a file to an existing ExplanationPayload
+        freeagent supports:
+        image/x-png image/jpeg image/jpg image/gif application/x-pdf
+
+        :param payload: ExplanationPayload to add the file to
+        :param description: optional description to use for the file on freeagent
+        """
         file_data = self._encode_file_base64(path)
         file_type = self._get_filetype(path)
 
@@ -74,50 +96,107 @@ class BankAPI(FreeAgentBase):
             "data": file_data,
         }
 
-    def explain_transaction(self, tx_obj, dryrun=False):
-        json_data = serialize_for_api(tx_obj)
+    def explain_transaction(self, tx_obj: ExplanationPayload, dryrun: bool = False):
+        """
+        Post the explanation to freeagent in the passed ExplanationPayload tx_obj
+
+        :param tx_obj: ExplanationPayload to use
+        :param dry_run: if True then do not post to freeagent, only print details
+        """
+        json_data = self.serialize_for_api(tx_obj)
         print(json_data["description"], json_data.get("gross_value"))
         if not dryrun:
             self.parent.post_api(
-                "bank_transaction_explanations", "bank_transaction_explanation", json_data
+                "bank_transaction_explanations",
+                "bank_transaction_explanation",
+                json_data,
             )
 
-    def explain_update(self, url, tx_obj, dryrun=False):
-        json_data = serialize_for_api(tx_obj)
+    def explain_update(
+        self, url: str, tx_obj: ExplanationPayload, dryrun: bool = False
+    ):
+        """
+        Update an existing explanation on freeagent with the passed url
+
+        :param url: url attribute of the bank transaction explanation to change
+        :param tx_obj: ExplanationPayload to use for updating the explanation
+        :param dry_run: if True then do not post to freeagent, only print details
+        """
+        json_data = self.serialize_for_api(tx_obj)
         print(json_data["description"], json_data.get("gross_value"))
         if not dryrun:
             self.parent.put_api(url, "bank_transaction_explanation", json_data)
 
-    def get_unexplained_transactions(self, account_id):
+    def get_unexplained_transactions(
+        self, account_id: str
+    ) -> dict[str, list[dict[str, Any]]]:
+        """
+        Return a dict of unexplained transactions for the bank account with id of account_id
+
+        :param account_id: account id to use, not the whole url
+
+        :return: dict of the unexplained transactions
+        """
         return self.parent.get_api(
             f"bank_transactions?bank_account={account_id}&view=unexplained"
         )
 
-    def _find_bank_name(self, bank_accounts, account_name):
+    def _find_bank_id(self, bank_accounts: dict[str, any], account_name: str) -> str:
+        """
+        Get the freeagent bank account ID for account_name
+
+        :param bank_accounts: a dict of the bank accounts on freeagent
+        :param account_name: name of the account to find
+
+        :return: the id of the bank account or None if not found
+        """
         for account in bank_accounts:
             if account["name"].lower() == account_name.lower():
                 return account["url"].rsplit("/", 1)[-1]
         return None
 
-    def get_paypalID(self, account_name):
-        response = self.parent.get_api("bank_accounts?view=paypal_accounts")
-        return self._find_bank_name(response.get("bank_accounts", []), account_name)
+    def get_paypal_id(self, account_name: str) -> str:
+        """
+        Get the ID of PayPal account on freeagent
 
-    def get_first_paypalID(self):
+        :param account_name: name of the account to find
+
+        :return: ID of the named PayPal account or None
+        """
+        response = self.parent.get_api("bank_accounts?view=paypal_accounts")
+        return self._find_bank_id(response.get("bank_accounts", []), account_name)
+
+    def get_first_paypal_id(self) -> str:
+        """
+        Get the ID of the first PayPal account on freeagent
+
+        :return: ID of the first PayPal account or None if there is no PayPal account
+        """
         response = self.parent.get_api("bank_accounts?view=paypal_accounts")
         accounts = response.get("bank_accounts", [])
         if accounts:
             return accounts[0]["url"].rsplit("/", 1)[-1]
         return None
 
-    def get_ID(self, account_name):
+    def get_id(self, account_name: str) -> str:
+        """
+        Get the ID of account_name searching standard bank accounts
+
+        :param account_name: name of the account to find
+
+        :return: ID of the account or None if not found
+        """
         response = self.parent.get_api("bank_accounts?view=standard_bank_accounts")
-        return self._find_bank_name(response.get("bank_accounts", []), account_name)
+        return self._find_bank_id(response.get("bank_accounts", []), account_name)
 
     def get_primary(self):
+        """
+        Get the ID of the primary bank account on freeagent (current account)
+
+        :return: ID of the account or None if not found
+        """
         response = self.parent.get_api("bank_accounts?view=standard_bank_accounts")
         for acct in response.get("bank_accounts", []):
             if acct.get("is_primary"):
                 return acct["url"].rsplit("/", 1)[-1]
         return None
-    
