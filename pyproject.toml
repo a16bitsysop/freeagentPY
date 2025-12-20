@@ -36,10 +36,10 @@ docs = [
 ]
 
 [tool.flit.sdist]
-include = ["tests", "src/memberjojo/_version.py"]
+include = ["tests", "src/freeagent/_version.py"]
 
 [tool.setuptools_scm]
-write_to = "src/memberjojo/_version.py"
+write_to = "src/freeagent/_version.py"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
