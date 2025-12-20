@@ -1,8 +1,8 @@
-Transaction Class
+CategoryAPI Class
 =================
 
-.. currentmodule:: memberjojo.mojo_transaction
-.. autoclass:: Transaction
+.. currentmodule:: freeagent.category
+.. autoclass:: CatergoryAPI
    :members:
    :inherited-members:
    :show-inheritance:

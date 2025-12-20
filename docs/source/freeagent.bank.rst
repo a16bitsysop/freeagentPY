@@ -1,8 +1,8 @@
-Member class
+BankAPI class
 ============
 
-.. currentmodule:: memberjojo.mojo_member
-.. autoclass:: Member
+.. currentmodule:: freeagent.bank
+.. autoclass:: BankAPI
    :members:
    :inherited-members:
    :show-inheritance:
