@@ -2,8 +2,11 @@
 Public class
 """
 
-__version__ = "0.1"
-__doc__ = "Python module for accessing freeagent using the API"
+try:
+    from ._version import version as __version__
+except ModuleNotFoundError:
+    # _version.py is written when building dist
+    __version__ = "0.0.0+local"
 
 from .base import FreeAgentBase
 from .bank import BankAPI

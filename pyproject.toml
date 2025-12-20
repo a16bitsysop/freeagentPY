@@ -1,6 +1,6 @@
 [build-system]
-requires = ["flit_core >=3.11,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["flit_scm",]
+build-backend = "flit_scm:buildapi"
 
 [project]
 name = "freeagent"
@@ -13,7 +13,38 @@ dependencies = [
     "keyring",
     "requests-oauthlib"
 ]
+requires-python = ">=3.8"
 
 [project.urls]
 Home = "https://github.com/a16bitsysop/freeagentPY"
 
+[project.optional-dependencies]
+dev = [
+    "coverage",
+    "flit",
+    "pytest",
+]
+lint = [
+    "black",
+    "pylint",
+]
+docs = [
+    "furo",                       # HTML theme
+    "myst-parser>=2.0",           # For Markdown support
+    "sphinx>=7.0",
+    "sphinx-autodoc-typehints",   # For cleaner type hints in docs
+]
+
+[tool.flit.sdist]
+include = ["tests", "src/memberjojo/_version.py"]
+
+[tool.setuptools_scm]
+write_to = "src/memberjojo/_version.py"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.pylint.main]
+output-format = "colorized"
+verbose = true
+ignore-patterns = ["_version.py"]

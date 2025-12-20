@@ -1,0 +1,43 @@
+name: lint and pytest
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  lint_pytest:
+    runs-on: ubuntu-latest
+
+    # Prevent double runs:
+    # - Run push jobs only when the push is *not* part of a PR
+    if: github.event_name != 'push' || github.event.pull_request == null
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v6
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: 🛠️ Install build deps
+        run: pip install ".[dev,lint]"
+
+      - name: 🧹 Run black
+        run: black --check --diff --color .
+
+      - name: 🧹 Run pylint
+        run: pylint .
+
+      - name: 🧪 Run pytest with coverage
+        run: |
+          coverage run -m pytest
+          coverage report -m
+
+      - name: Run markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v22
+        with:
+          globs: '**/*.md'
+
