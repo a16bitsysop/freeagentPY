@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 from freeagent.category import CategoryAPI
 
+
 class CategoryAPITestCase(unittest.TestCase):
     def setUp(self):
         # Set up a mock parent with get_api
@@ -10,11 +11,19 @@ class CategoryAPITestCase(unittest.TestCase):
         self.api = CategoryAPI(self.parent)
         self.dummy_categories = {
             "active": [
-                {"description": "Office Costs", "url": "http://cat/1", "nominal_code": "101"},
+                {
+                    "description": "Office Costs",
+                    "url": "http://cat/1",
+                    "nominal_code": "101",
+                },
                 {"description": "Travel", "url": "http://cat/2", "nominal_code": "202"},
             ],
             "archived": [
-                {"description": "Old Office", "url": "http://cat/3", "nominal_code": "303"},
+                {
+                    "description": "Old Office",
+                    "url": "http://cat/3",
+                    "nominal_code": "303",
+                },
             ],
         }
 
@@ -56,6 +65,7 @@ class CategoryAPITestCase(unittest.TestCase):
         self.parent.get_api.return_value = {}
         url = self.api.get_desc_id("Office")
         self.assertEqual(url, "http://cat/1")
+
 
 if __name__ == "__main__":
     unittest.main()
