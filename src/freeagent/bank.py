@@ -88,7 +88,7 @@ class BankAPI(FreeAgentBase):
         """
         Attach a file to an existing ExplanationPayload
         freeagent supports:
-        
+
         - image/x-png
         - image/jpeg
         - image/jpg
