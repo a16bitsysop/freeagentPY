@@ -21,6 +21,23 @@ security add-generic-password -a freeagent_client_secret -s freeagent_api \
 If you want to clear the oauth token from Keychain, you can run this once:
 security delete-generic-password -a "oauth2_token" -s "freeagent_token"
 
+## Exmple
+
+```python
+from freeagent import FreeAgent
+
+freeagent=FreeAgent()
+freeagent.authenticate()
+
+main_response = freeagent.get_api("users/me")
+print(
+f"✅ Authenticated! User info: {main_response['user']['first_name']} {main_response['user']['last_name']}"
+)
+
+paypal_id = freeagent.bank.get_first_paypal_id()
+paypal_data = freeagent.bank.get_unexplained_transactions(paypal_id)
+```
+
 ## Documentation
 
 Full documentation is available at  
