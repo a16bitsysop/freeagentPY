@@ -15,6 +15,13 @@ class BankAPI(FreeAgentBase):
     """
     BankAPI class to retreive information
     about bank accounts on freeagent
+
+    Initialize the base class
+
+    :param api_base_url: the url to use for requests, defaults to normal but
+        can be changed to sandbox
+    :param service_name: The service name to use with keyring for storing oauth token
+    :param token_name: The name to use for the oauth token when storing in keyring
     """
 
     def __init__(self, parent):  # pylint: disable=super-init-not-called
@@ -81,7 +88,12 @@ class BankAPI(FreeAgentBase):
         """
         Attach a file to an existing ExplanationPayload
         freeagent supports:
-        image/x-png image/jpeg image/jpg image/gif application/x-pdf
+        
+        - image/x-png
+        - image/jpeg
+        - image/jpg
+        - image/gif
+        - application/x-pdf
 
         :param payload: ExplanationPayload to add the file to
         :param description: optional description to use for the file on freeagent

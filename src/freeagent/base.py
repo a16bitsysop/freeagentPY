@@ -19,18 +19,24 @@ class FreeAgentBase:
     Common functions used in other classes
     """
 
-    SERVICE_NAME = "freeagent_token"
-    TOKEN_KEY = "oauth2_token"
-
-    def __init__(self, api_base_url: str = "https://api.freeagent.com/v2/"):
+    def __init__(
+        self,
+        api_base_url: str = "https://api.freeagent.com/v2/",
+        service_name: str = "freeagent_token",
+        token_name: str = "oauth2_token",
+    ):
         """
         Initialize the base class
 
-        :param api_base_url: the url to use for requests, defaults to normal but
-            can be changed to sandbox
+        :param api_base_url: the url to use for requests, defaults to normal but can be
+            changed to sandbox
+        :param service_name: The service name to use with keyring for storing oauth token
+        :param token_name: The name to use for the oauth token when storing in keyring
         """
         self.api_base_url = api_base_url
         self.session = None
+        self.service_name = service_name
+        self.token_key = token_name
 
     def get_credential(self, service: str, account: str, prompt_text: str) -> str:
         """
@@ -55,7 +61,7 @@ class FreeAgentBase:
 
         :param token: the token to save
         """
-        set_password(self.SERVICE_NAME, self.TOKEN_KEY, json.dumps(token))
+        set_password(self.service_name, self.token_key, json.dumps(token))
 
     def _load_token(self):
         """
@@ -63,7 +69,7 @@ class FreeAgentBase:
 
         :return: token, or None if not found or error
         """
-        token_json = get_password(self.SERVICE_NAME, self.TOKEN_KEY)
+        token_json = get_password(self.service_name, self.token_key)
         try:
             return json.loads(token_json) if token_json else None
         except json.JSONDecodeError:

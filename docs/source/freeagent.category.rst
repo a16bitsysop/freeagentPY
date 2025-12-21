@@ -2,9 +2,8 @@ CategoryAPI Class
 =================
 
 .. currentmodule:: freeagent.category
-.. autoclass:: CatergoryAPI
+.. autoclass:: CategoryAPI
    :members:
-   :inherited-members:
    :show-inheritance:
    :undoc-members:
-   
+

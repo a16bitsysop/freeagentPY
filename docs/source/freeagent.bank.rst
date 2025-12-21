@@ -1,5 +1,5 @@
 BankAPI class
-============
+=============
 
 .. currentmodule:: freeagent.bank
 .. autoclass:: BankAPI

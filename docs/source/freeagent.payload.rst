@@ -4,7 +4,5 @@ ExplanationPayload DataClass
 .. currentmodule:: freeagent.payload
 .. autoclass:: ExplanationPayload
    :members:
-   :inherited-members:
-   :show-inheritance:
+   :member-order: bysource
    :undoc-members:
-   
