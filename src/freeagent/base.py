@@ -2,15 +2,11 @@
 Base class the other class inherit from
 """
 
-import json
-
 from dataclasses import asdict, is_dataclass
 from datetime import date, datetime
 from decimal import Decimal
-from getpass import getpass
 from webbrowser import open as open_browser
 
-from keyring import get_password, set_password
 from requests_oauthlib import OAuth2Session
 
 
@@ -22,8 +18,6 @@ class FreeAgentBase:
     def __init__(
         self,
         api_base_url: str = "https://api.freeagent.com/v2/",
-        service_name: str = "freeagent_token",
-        token_name: str = "oauth2_token",
     ):
         """
         Initialize the base class
@@ -35,79 +29,34 @@ class FreeAgentBase:
         """
         self.api_base_url = api_base_url
         self.session = None
-        self.service_name = service_name
-        self.token_key = token_name
 
-    def get_credential(self, service: str, account: str, prompt_text: str) -> str:
-        """
-        Get a credential from the keyring, prompting to enter if needed
-
-        :param service: service name of credential
-        :param account: account name of credential
-        :param promt_text: text to display when prompting for credential if not saved
-
-        :return: the credential
-        """
-        cred = get_password(service, account)
-        if cred is None:
-            cred = getpass(f"{prompt_text}: ")
-            set_password(service, account, cred)
-            print(f"Stored {account} in keychain.")
-        return cred
-
-    def _save_token(self, token: str):
-        """
-        Save the oauth token to the keyring
-
-        :param token: the token to save
-        """
-        set_password(self.service_name, self.token_key, json.dumps(token))
-
-    def _load_token(self):
-        """
-        Load the oauth token from the keyring
-
-        :return: token, or None if not found or error
-        """
-        token_json = get_password(self.service_name, self.token_key)
-        try:
-            return json.loads(token_json) if token_json else None
-        except json.JSONDecodeError:
-            print("⚠️ Invalid token in keyring. Re-auth required.")
-            return None
-
-    def authenticate(self):
+    def authenticate(
+        self, oauth_ident: str, oauth_secret: str, save_token_cb, token: str = None
+    ):
         """
         Authenticate with the freeagent API
+
+        :param oauth_ident: oauth identifier from the freeagent dev dashboard
+        :param oauth_secret: oauth secret from the freeagent dev dashboard
+        :param save_token_cb: function to call when the token is refreshed to save it
+        :param token: initial token, or None
         """
         token_url = self.api_base_url + "token_endpoint"
         redirect_uri = "https://localhost/"
 
-        client_id = self.get_credential(
-            "freeagent_api",
-            "freeagent_client_id",
-            "Enter your FreeAgent OAuth identifier",
-        )
-        client_secret = self.get_credential(
-            "freeagent_api",
-            "freeagent_client_secret",
-            "Enter your FreeAgent OAuth secret",
-        )
-
-        token = self._load_token()
-        extra = {"client_id": client_id, "client_secret": client_secret}
+        extra = {"client_id": oauth_ident, "client_secret": oauth_secret}
 
         if token:
             oauth = OAuth2Session(
-                client_id,
+                oauth_ident,
                 token=token,
                 auto_refresh_url=token_url,
                 auto_refresh_kwargs=extra,
-                token_updater=self._save_token,
+                token_updater=save_token_cb,
             )
-        else:
+        elif oauth_secret:
             oauth = OAuth2Session(
-                client_id, redirect_uri=redirect_uri, scope=[self.api_base_url]
+                oauth_ident, redirect_uri=redirect_uri, scope=[self.api_base_url]
             )
             auth_url, _state = oauth.authorization_url(
                 self.api_base_url + "approve_app"
@@ -119,9 +68,11 @@ class FreeAgentBase:
             token = oauth.fetch_token(
                 token_url,
                 authorization_response=redirect_response,
-                client_secret=client_secret,
+                client_secret=oauth_secret,
             )
-            self._save_token(token)
+            save_token_cb(token)
+        else:
+            raise ValueError("Need oauth_secret, or oauth_token")
 
         self.session = oauth
         self.session.headers.update(

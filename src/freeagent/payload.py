@@ -20,3 +20,4 @@ class ExplanationPayload:
     description: Optional[str] = None  # Optional
     bank_transaction: Optional[str] = None  # Required for new explanations
     attachment: Optional[Dict] = None
+    transfer_bank_account: Optional[str] = None
