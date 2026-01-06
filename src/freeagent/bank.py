@@ -212,3 +212,15 @@ class BankAPI(FreeAgentBase):
             if acct.get("is_primary"):
                 return acct["url"].rsplit("/", 1)[-1]
         return None
+
+    def get_primary_uri(self):
+        """
+        Get the uri for the primary bank account on freeagent (current account)
+
+        :return: uri of the account or None if not found
+        """
+        response = self.parent.get_api("bank_accounts?view=standard_bank_accounts")
+        for acct in response.get("bank_accounts", []):
+            if acct.get("is_primary"):
+                return acct["url"]
+        return None

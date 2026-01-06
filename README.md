@@ -6,7 +6,7 @@
 
 Create an API app entry at the [Freeagent Dev Portal](https://dev.freeagent.com)
 
-When run if they id and secret entries do not exist they will be prompted for.
+When run if the id and secret entries do not exist they will be prompted for.
 
 Manual setup example on macOS
 
