@@ -149,9 +149,8 @@ class BankAPI(FreeAgentBase):
 
         :return: dict of the unexplained transactions
         """
-        return self.parent.get_api(
-            f"bank_transactions?bank_account={account_id}&view=unexplained"
-        )
+        params = {"bank_account": account_id, "view": "unexplained"}
+        return self.parent.get_api("bank_transactions", params)
 
     def _find_bank_id(self, bank_accounts: dict[str, any], account_name: str) -> str:
         """
@@ -175,7 +174,8 @@ class BankAPI(FreeAgentBase):
 
         :return: ID of the named PayPal account or None
         """
-        response = self.parent.get_api("bank_accounts?view=paypal_accounts")
+        params = {"view": "paypal_accounts"}
+        response = self.parent.get_api("bank_accounts", params)
         return self._find_bank_id(response.get("bank_accounts", []), account_name)
 
     def get_first_paypal_id(self) -> str:
@@ -184,7 +184,8 @@ class BankAPI(FreeAgentBase):
 
         :return: ID of the first PayPal account or None if there is no PayPal account
         """
-        response = self.parent.get_api("bank_accounts?view=paypal_accounts")
+        params = {"view": "paypal_accounts"}
+        response = self.parent.get_api("bank_accounts", params)
         accounts = response.get("bank_accounts", [])
         if accounts:
             return accounts[0]["url"].rsplit("/", 1)[-1]
@@ -198,7 +199,8 @@ class BankAPI(FreeAgentBase):
 
         :return: ID of the account or None if not found
         """
-        response = self.parent.get_api("bank_accounts?view=standard_bank_accounts")
+        params = {"view": "standard_bank_accounts"}
+        response = self.parent.get_api("bank_accounts", params)
         return self._find_bank_id(response.get("bank_accounts", []), account_name)
 
     def get_primary(self):
@@ -207,7 +209,8 @@ class BankAPI(FreeAgentBase):
 
         :return: ID of the account or None if not found
         """
-        response = self.parent.get_api("bank_accounts?view=standard_bank_accounts")
+        params = {"view": "standard_bank_accounts"}
+        response = self.parent.get_api("bank_accounts", params)
         for acct in response.get("bank_accounts", []):
             if acct.get("is_primary"):
                 return acct["url"].rsplit("/", 1)[-1]
@@ -219,7 +222,8 @@ class BankAPI(FreeAgentBase):
 
         :return: uri of the account or None if not found
         """
-        response = self.parent.get_api("bank_accounts?view=standard_bank_accounts")
+        params = {"view": "standard_bank_accounts"}
+        response = self.parent.get_api("bank_accounts", params)
         for acct in response.get("bank_accounts", []):
             if acct.get("is_primary"):
                 return acct["url"]

@@ -11,6 +11,7 @@ except ModuleNotFoundError:
 from .base import FreeAgentBase
 from .bank import BankAPI
 from .category import CategoryAPI
+from .transaction import TransactionAPI
 from .payload import ExplanationPayload
 
 
@@ -23,3 +24,4 @@ class FreeAgent(FreeAgentBase):
         super().__init__()  # initialse base class
         self.bank = BankAPI(self)
         self.category = CategoryAPI(self)
+        self.transaction = TransactionAPI(self)

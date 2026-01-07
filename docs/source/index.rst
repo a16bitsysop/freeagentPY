@@ -9,6 +9,7 @@ API Reference
 
    freeagent.bank
    freeagent.category
+   freeagent.transaction
    freeagent.payload
 
 Index

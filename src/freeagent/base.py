@@ -106,15 +106,18 @@ class FreeAgentBase:
 
         return {k: convert(v) for k, v in obj.items() if v is not None}
 
-    def get_api(self, endpoint: str) -> dict[str, any]:
+    def get_api(self, endpoint: str, params: dict = None) -> dict[str, any]:
         """
         Perform an API get request
 
         :param endpoint: end part of the endpoint URL
+        :param params: dict of "Name": Value entries for request to process into URL
 
         :return: response as a dict
         """
-        response = self.session.get(self.api_base_url + endpoint)
+
+        # requests will build url including params
+        response = self.session.get(self.api_base_url + endpoint, params=params)
         response.raise_for_status()
         return response.json()
 
