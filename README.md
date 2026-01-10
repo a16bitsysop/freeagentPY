@@ -6,36 +6,41 @@
 
 Create an API app entry at the [Freeagent Dev Portal](https://dev.freeagent.com)
 
-When run if the id and secret entries do not exist they will be prompted for.
-
-Manual setup example on macOS
-
-1. Set the client ID
-security add-generic-password -a freeagent_client_id -s freeagent_api \
-    -w "your_client_id_here" -U
-
-2. Set the client secret
-security add-generic-password -a freeagent_client_secret -s freeagent_api \
-    -w "your_client_secret_here" -U
-
-If you want to clear the oauth token from Keychain, you can run this once:
-security delete-generic-password -a "oauth2_token" -s "freeagent_token"
-
 ## Exmple
 
 ```python
+from os import environ
+import json
+
 from freeagent import FreeAgent
 
-freeagent=FreeAgent()
-freeagent.authenticate()
+def _load_token():
+    with open("token.json", "r") as f:
+        token = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        token = None
+    return token
 
-main_response = freeagent.get_api("users/me")
+def _save_token(token_data):
+    # save the token
+    with open("token.json", "w") as f:
+        json.dump(token_data, f)
+
+client_id = environ["FREEAGENT_ID"]
+client_secret = environ["FREEAGENT_SECRET"]
+
+token = _load_token()
+
+freeagent_client = FreeAgent()
+freeagent_client.authenticate(client_id, client_secret ,_save_token, token)
+
+main_response = freeagent_client.get_api("users/me")
 print(
 f"✅ Authenticated! User info: {main_response['user']['first_name']} {main_response['user']['last_name']}"
 )
 
-paypal_id = freeagent.bank.get_first_paypal_id()
-paypal_data = freeagent.bank.get_unexplained_transactions(paypal_id)
+paypal_id = freeagent_client.bank.get_first_paypal_id()
+paypal_data = freeagent_client.bank.get_unexplained_transactions(paypal_id)
 ```
 
 ## Documentation
