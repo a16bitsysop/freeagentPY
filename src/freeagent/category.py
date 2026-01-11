@@ -40,7 +40,21 @@ class CategoryAPI(FreeAgentBase):
                     return cat["url"]
         return None
 
-    def get_nominal_id(self, nominal_code: int) -> str:
+    def get_desc_nominal_code(self, description: str) -> ints:
+        """
+        Return the nominal code for a given category description.
+
+        :param description: The description of the category.
+        :return: The nominal code of the category, or None if not found.
+        """
+        self._prep_categories()
+        for _, cats in self.categories.items():
+            for cat in cats:
+                if description.lower() in cat.get("description", "").lower():
+                    return cat["nominal_code"]
+        return None
+
+    def get_nominal_code_id(self, nominal_code: int) -> str:
         """
         Get category id from nominal code
 

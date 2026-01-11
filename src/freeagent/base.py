@@ -6,6 +6,7 @@ from dataclasses import asdict, is_dataclass
 from datetime import date, datetime
 from decimal import Decimal
 from webbrowser import open as open_browser
+import re
 
 from requests_oauthlib import OAuth2Session
 
@@ -108,18 +109,53 @@ class FreeAgentBase:
 
     def get_api(self, endpoint: str, params: dict = None) -> dict[str, any]:
         """
-        Perform an API get request
+        Perform an API get request, handling pagination.
 
         :param endpoint: end part of the endpoint URL
         :param params: dict of "Name": Value entries for request to process into URL
 
         :return: response as a dict
         """
+        if params is None:
+            params = {}
 
-        # requests will build url including params
+        per_page = 100
+        params["per_page"] = per_page
+        params["page"] = 1
+
         response = self.session.get(self.api_base_url + endpoint, params=params)
         response.raise_for_status()
-        return response.json()
+        json_data = response.json()
+
+        # some endpoints return a single object, not a list
+        # if the response is not a dict, or if the key is not in the dict, return it
+        key = endpoint.split("/")[-1]
+        if not isinstance(json_data, dict) or key not in json_data:
+            return json_data
+
+        items = json_data.get(key, [])
+
+        if len(items) == per_page:
+            # More pages might exist, so start paginating from page 2
+            page = 2
+            while True:
+                params["page"] = page
+                response = self.session.get(self.api_base_url + endpoint, params=params)
+                response.raise_for_status()
+                json_data = response.json()
+
+                if key in json_data:
+                    current_items = json_data[key]
+                    items.extend(current_items)
+
+                    if len(current_items) < per_page:
+                        break
+                else:
+                    break
+
+                page += 1
+
+        return {key: items}
 
     def put_api(self, url: str, root: str, updates: str):
         """

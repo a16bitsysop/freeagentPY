@@ -21,18 +21,18 @@ class TransactionAPITestCase(unittest.TestCase):
 
     def test_get_transactions_success(self):
         """Test that transactions are fetched correctly for a valid category."""
-        category_uri = "https://api.freeagent.com/v2/categories/123"
+        nominal_code = "123"
         start_date = "2023-01-01"
         end_date = "2023-01-31"
         expected_transactions = {"transactions": ["transaction1", "transaction2"]}
         self.parent.get_api.return_value = expected_transactions
 
-        transactions = self.api.get_transactions(category_uri, start_date, end_date)
+        transactions = self.api.get_transactions(nominal_code, start_date, end_date)
 
         self.parent.get_api.assert_called_once_with(
             "transactions",
             {
-                "category": category_uri,
+                "nominal_code": nominal_code,
                 "from_date": start_date,
                 "to_date": end_date,
             },
