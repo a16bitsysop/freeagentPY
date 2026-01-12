@@ -10,6 +10,8 @@ import re
 
 from requests_oauthlib import OAuth2Session
 
+from .utils import make_dataclass_from_dict
+
 
 class FreeAgentBase:
     """
@@ -83,6 +85,13 @@ class FreeAgentBase:
             }
         )
 
+        # Get user info and print it
+        user_info = self.get_api("users/me")
+        print(
+            f"✅ Authenticated! User info: {user_info[0].user['first_name']} {user_info[0].user['last_name']}"
+        )
+        print()
+
     def serialize_for_api(self, obj) -> dict[str, any]:
         """
         Convert dataclasses or dicts with Decimal, date, etc. into plain API-compatible dicts.
@@ -107,15 +116,27 @@ class FreeAgentBase:
 
         return {k: convert(v) for k, v in obj.items() if v is not None}
 
-    def get_api(self, endpoint: str, params: dict = None) -> dict[str, any]:
+    def get_api(self, endpoint: str, params: dict = None) -> list:
         """
         Perform an API get request, handling pagination.
 
         :param endpoint: end part of the endpoint URL
         :param params: dict of "Name": Value entries for request to process into URL
 
-        :return: response as a dict
+        :return: A list of dataclass instances.
         """
+
+        if endpoint == "categories":
+            response = self.session.get(self.api_base_url + endpoint, params=params)
+            response.raise_for_status()
+            json_data = response.json()
+
+            items = []
+            for category_list in json_data.values():
+                for category_data in category_list:
+                    items.append(make_dataclass_from_dict("category", category_data))
+            return items
+
         if params is None:
             params = {}
 
@@ -127,16 +148,18 @@ class FreeAgentBase:
         response.raise_for_status()
         json_data = response.json()
 
-        # some endpoints return a single object, not a list
-        # if the response is not a dict, or if the key is not in the dict, return it
         key = endpoint.split("/")[-1]
-        if not isinstance(json_data, dict) or key not in json_data:
-            return json_data
+        class_name = key.rstrip("s")
 
-        items = json_data.get(key, [])
+        if not isinstance(json_data, dict) or key not in json_data:
+            return [make_dataclass_from_dict(class_name, json_data)]
+
+        items = [
+            make_dataclass_from_dict(class_name, item)
+            for item in json_data.get(key, [])
+        ]
 
         if len(items) == per_page:
-            # More pages might exist, so start paginating from page 2
             page = 2
             while True:
                 params["page"] = page
@@ -146,7 +169,12 @@ class FreeAgentBase:
 
                 if key in json_data:
                     current_items = json_data[key]
-                    items.extend(current_items)
+                    items.extend(
+                        [
+                            make_dataclass_from_dict(class_name, item)
+                            for item in current_items
+                        ]
+                    )
 
                     if len(current_items) < per_page:
                         break
@@ -155,7 +183,7 @@ class FreeAgentBase:
 
                 page += 1
 
-        return {key: items}
+        return items
 
     def put_api(self, url: str, root: str, updates: str):
         """

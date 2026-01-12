@@ -116,6 +116,10 @@ class BankAPI(FreeAgentBase):
         :param dry_run: if True then do not post to freeagent, only print details
         """
         json_data = self.serialize_for_api(tx_obj)
+        json_data["category"] = self.parent.category.get_url_from_nominal_code(
+            tx_obj.nominal_code
+        )
+
         print(json_data["description"], json_data.get("gross_value"))
         if not dryrun:
             self.parent.post_api(
@@ -135,35 +139,37 @@ class BankAPI(FreeAgentBase):
         :param dry_run: if True then do not post to freeagent, only print details
         """
         json_data = self.serialize_for_api(tx_obj)
+        json_data["category"] = self.parent.category.get_url_from_nominal_code(
+            tx_obj.nominal_code
+        )
+
         print(json_data["description"], json_data.get("gross_value"))
         if not dryrun:
             self.parent.put_api(url, "bank_transaction_explanation", json_data)
 
-    def get_unexplained_transactions(
-        self, account_id: str
-    ) -> dict[str, list[dict[str, Any]]]:
+    def get_unexplained_transactions(self, account_id: str) -> list:
         """
-        Return a dict of unexplained transactions for the bank account with id of account_id
+        Return a list of unexplained transaction objects for the bank account with id of account_id
 
         :param account_id: account id to use, not the whole url
 
-        :return: dict of the unexplained transactions
+        :return: list of the unexplained transactions
         """
         params = {"bank_account": account_id, "view": "unexplained"}
         return self.parent.get_api("bank_transactions", params)
 
-    def _find_bank_id(self, bank_accounts: dict[str, any], account_name: str) -> str:
+    def _find_bank_id(self, bank_accounts: list, account_name: str) -> str:
         """
         Get the freeagent bank account ID for account_name
 
-        :param bank_accounts: a dict of the bank accounts on freeagent
+        :param bank_accounts: a list of the bank accounts on freeagent
         :param account_name: name of the account to find
 
         :return: the id of the bank account or None if not found
         """
         for account in bank_accounts:
-            if account["name"].lower() == account_name.lower():
-                return account["url"].rsplit("/", 1)[-1]
+            if account.name.lower() == account_name.lower():
+                return account.url.rsplit("/", 1)[-1]
         return None
 
     def get_paypal_id(self, account_name: str) -> str:
@@ -176,7 +182,7 @@ class BankAPI(FreeAgentBase):
         """
         params = {"view": "paypal_accounts"}
         response = self.parent.get_api("bank_accounts", params)
-        return self._find_bank_id(response.get("bank_accounts", []), account_name)
+        return self._find_bank_id(response, account_name)
 
     def get_first_paypal_id(self) -> str:
         """
@@ -186,9 +192,8 @@ class BankAPI(FreeAgentBase):
         """
         params = {"view": "paypal_accounts"}
         response = self.parent.get_api("bank_accounts", params)
-        accounts = response.get("bank_accounts", [])
-        if accounts:
-            return accounts[0]["url"].rsplit("/", 1)[-1]
+        if response:
+            return response[0].url.rsplit("/", 1)[-1]
         return None
 
     def get_id(self, account_name: str) -> str:
@@ -201,7 +206,7 @@ class BankAPI(FreeAgentBase):
         """
         params = {"view": "standard_bank_accounts"}
         response = self.parent.get_api("bank_accounts", params)
-        return self._find_bank_id(response.get("bank_accounts", []), account_name)
+        return self._find_bank_id(response, account_name)
 
     def get_primary(self):
         """
@@ -211,9 +216,9 @@ class BankAPI(FreeAgentBase):
         """
         params = {"view": "standard_bank_accounts"}
         response = self.parent.get_api("bank_accounts", params)
-        for acct in response.get("bank_accounts", []):
-            if acct.get("is_primary"):
-                return acct["url"].rsplit("/", 1)[-1]
+        for acct in response:
+            if hasattr(acct, "is_primary") and acct.is_primary:
+                return acct.url.rsplit("/", 1)[-1]
         return None
 
     def get_primary_uri(self):
@@ -224,7 +229,7 @@ class BankAPI(FreeAgentBase):
         """
         params = {"view": "standard_bank_accounts"}
         response = self.parent.get_api("bank_accounts", params)
-        for acct in response.get("bank_accounts", []):
-            if acct.get("is_primary"):
-                return acct["url"]
+        for acct in response:
+            if hasattr(acct, "is_primary") and acct.is_primary:
+                return acct.url
         return None

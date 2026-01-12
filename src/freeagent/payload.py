@@ -3,28 +3,12 @@ ExplanationPayload dataclass used by this module
 """
 
 from dataclasses import dataclass
-from datetime import date, datetime
+
+from datetime import date
+
 from decimal import Decimal
-from typing import Optional, Dict, List
 
-
-@dataclass
-class Transaction:
-    """
-    dataclass for a single transaction
-    """
-
-    url: str
-    dated_on: date
-    created_at: datetime
-    updated_at: datetime
-    description: str
-    category: str
-    category_name: str
-    nominal_code: str
-    debit_value: Decimal
-    source_item_url: Optional[str] = None
-    foreign_currency_data: Optional[Dict] = None
+from typing import Optional, Dict
 
 
 @dataclass
@@ -33,7 +17,7 @@ class ExplanationPayload:
     dataclass used to store data for functions
     """
 
-    category: str  # Required
+    nominal_code: str  # Required
     dated_on: date  # Required
     gross_value: Decimal  # Required
     description: Optional[str] = None  # Optional
