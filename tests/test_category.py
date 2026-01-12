@@ -57,18 +57,18 @@ class CategoryAPITestCase(unittest.TestCase):
         url = self.api.get_desc_id("Travel")
         self.assertEqual(url, "http://cat/2")
         # Not found
-        url = self.api.get_desc_id("Nonexistent")
-        self.assertIsNone(url)
+        with self.assertRaises(ValueError):
+            self.api.get_desc_id("Nonexistent")
 
     def test_get_nominal_id_finds_code(self):
         """Test category lookup by nominal code."""
         self.parent.get_api.return_value = self.dummy_categories
-        url = self.api.get_nominal_id(101)
+        url = self.api.get_nominal_code_id(101)
         self.assertEqual(url, "http://cat/1")
-        url = self.api.get_nominal_id(303)
+        url = self.api.get_nominal_code_id(303)
         self.assertEqual(url, "http://cat/3")
-        url = self.api.get_nominal_id(999)
-        self.assertIsNone(url)
+        with self.assertRaises(ValueError):
+            self.api.get_nominal_code_id(999)
 
     def test_caching_persists_for_getters(self):
         """Test that cached categories persist across lookups."""

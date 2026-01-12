@@ -31,26 +31,29 @@ class CategoryAPI(FreeAgentBase):
 
         :param description: name of category to find
 
-        :return: id url of the category or None if not found
+        :return: id url of the category
+        :raises ValueError: if category not found
         """
         self._prep_categories()
         for cat in self.categories:
             if description.lower() in cat.description.lower():
                 return cat.url
-        return None
+        raise ValueError(f"Category with description '{description}' not found.")
 
     def get_desc_nominal_code(self, description: str) -> str:
         """
         Return the nominal code for a given category description.
 
         :param description: The description of the category.
-        :return: The nominal code of the category, or None if not found.
+
+        :return: The nominal code of the category
+        :raises ValueError: if category not found
         """
         self._prep_categories()
         for cat in self.categories:
             if description.lower() in cat.description.lower():
                 return cat.nominal_code
-        return None
+        raise ValueError(f"Category with description '{description}' not found.")
 
     def get_nominal_code_id(self, nominal_code: int) -> str:
         """
@@ -58,24 +61,11 @@ class CategoryAPI(FreeAgentBase):
 
         :param nominal_code: nominal code of category to find
 
-        :return: id url of the category or None if not found
+        :return: id url of the category
+        :raises ValueError: if category not found
         """
         self._prep_categories()
         for cat in self.categories:
             if str(nominal_code) == cat.nominal_code:
                 return cat.url
-        return None
-
-    def get_url_from_nominal_code(self, nominal_code: int) -> str:
-        """
-        Get category url from nominal code
-
-        :param nominal_code: nominal code of category to find
-
-        :return: id url of the category or None if not found
-        """
-        self._prep_categories()
-        for cat in self.categories:
-            if str(nominal_code) == cat.nominal_code:
-                return cat.url
-        return None
+        raise ValueError(f"Category with nominal code '{nominal_code}' not found.")

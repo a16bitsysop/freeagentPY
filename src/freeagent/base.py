@@ -6,7 +6,6 @@ from dataclasses import asdict, is_dataclass
 from datetime import date, datetime
 from decimal import Decimal
 from webbrowser import open as open_browser
-import re
 
 from requests_oauthlib import OAuth2Session
 
@@ -87,9 +86,9 @@ class FreeAgentBase:
 
         # Get user info and print it
         user_info = self.get_api("users/me")
-        print(
-            f"✅ Authenticated! User info: {user_info[0].user['first_name']} {user_info[0].user['last_name']}"
-        )
+        first_name = user_info[0].user['first_name']
+        last_name = user_info[0].user['last_name']
+        print(f"✅ Authenticated! User info: {first_name} {last_name}")
         print()
 
     def serialize_for_api(self, obj) -> dict[str, any]:

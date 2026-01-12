@@ -5,7 +5,6 @@ about bank accounts on freeagent
 
 from base64 import b64encode
 from pathlib import Path
-from typing import Any
 
 from .base import FreeAgentBase
 from .payload import ExplanationPayload
