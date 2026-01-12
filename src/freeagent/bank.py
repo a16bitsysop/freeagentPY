@@ -115,7 +115,7 @@ class BankAPI(FreeAgentBase):
         :param dry_run: if True then do not post to freeagent, only print details
         """
         json_data = self.serialize_for_api(tx_obj)
-        json_data["category"] = self.parent.category.get_url_from_nominal_code(
+        json_data["category"] = self.parent.category.get_nominal_code_id(
             tx_obj.nominal_code
         )
 
@@ -138,7 +138,7 @@ class BankAPI(FreeAgentBase):
         :param dry_run: if True then do not post to freeagent, only print details
         """
         json_data = self.serialize_for_api(tx_obj)
-        json_data["category"] = self.parent.category.get_url_from_nominal_code(
+        json_data["category"] = self.parent.category.get_nominal_code_id(
             tx_obj.nominal_code
         )
 
@@ -216,7 +216,7 @@ class BankAPI(FreeAgentBase):
         params = {"view": "standard_bank_accounts"}
         response = self.parent.get_api("bank_accounts", params)
         for acct in response:
-            if hasattr(acct, "is_primary") and acct.is_primary:
+            if getattr(acct, "is_primary", False):
                 return acct.url.rsplit("/", 1)[-1]
         return None
 
@@ -229,6 +229,6 @@ class BankAPI(FreeAgentBase):
         params = {"view": "standard_bank_accounts"}
         response = self.parent.get_api("bank_accounts", params)
         for acct in response:
-            if hasattr(acct, "is_primary") and acct.is_primary:
+            if getattr(acct, "is_primary", False):
                 return acct.url
         return None

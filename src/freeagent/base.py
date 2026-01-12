@@ -86,8 +86,8 @@ class FreeAgentBase:
 
         # Get user info and print it
         user_info = self.get_api("users/me")
-        first_name = user_info[0].user['first_name']
-        last_name = user_info[0].user['last_name']
+        first_name = user_info[0].user["first_name"]
+        last_name = user_info[0].user["last_name"]
         print(f"✅ Authenticated! User info: {first_name} {last_name}")
         print()
 

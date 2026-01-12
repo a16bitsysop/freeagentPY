@@ -19,23 +19,15 @@ class CategoryAPITestCase(unittest.TestCase):
         # Set up a mock parent with get_api
         self.parent = MagicMock()
         self.api = CategoryAPI(self.parent)
-        self.dummy_categories = {
-            "active": [
-                {
-                    "description": "Office Costs",
-                    "url": "http://cat/1",
-                    "nominal_code": "101",
-                },
-                {"description": "Travel", "url": "http://cat/2", "nominal_code": "202"},
-            ],
-            "archived": [
-                {
-                    "description": "Old Office",
-                    "url": "http://cat/3",
-                    "nominal_code": "303",
-                },
-            ],
-        }
+        self.dummy_categories = [
+            MagicMock(
+                description="Office Costs", url="http://cat/1", nominal_code="101"
+            ),
+            MagicMock(description="Travel", url="http://cat/2", nominal_code="202"),
+            MagicMock(
+                description="Old Office", url="http://cat/3", nominal_code="303"
+            ),
+        ]
 
     def test_prep_categories_fetches_once(self):
         """Test that categories are fetched from the parent once and then cached."""

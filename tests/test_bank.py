@@ -25,6 +25,7 @@ class DummyPayload:
         self.attachment = {}
         self.description = "Test"
         self.gross_value = 123.45
+        self.nominal_code = "250"
 
 
 class BankAPITestCase(unittest.TestCase):
@@ -134,42 +135,41 @@ class BankAPITestCase(unittest.TestCase):
 
     def test_get_paypal_id_works(self):
         """Test finding PayPal account ID by name."""
-        self.parent.get_api.return_value = {
-            "bank_accounts": [{"name": "PayPal Account", "url": "http://x/y/123"}]
-        }
+        mock_account = MagicMock()
+        mock_account.configure_mock(name="PayPal Account", url="http://x/y/123")
+        self.parent.get_api.return_value = [mock_account]
         result_id = self.api.get_paypal_id("PayPal Account")
         self.assertEqual(result_id, "123")
 
     def test_get_first_paypal_id(self):
         """Test retrieval of the first PayPal account ID."""
-        self.parent.get_api.return_value = {
-            "bank_accounts": [{"url": "http://x/y/456"}]
-        }
+        mock_account = MagicMock()
+        mock_account.configure_mock(url="http://x/y/456")
+        self.parent.get_api.return_value = [mock_account]
         result_id = self.api.get_first_paypal_id()
         self.assertEqual(result_id, "456")
-        self.parent.get_api.return_value = {"bank_accounts": []}
+        self.parent.get_api.return_value = []
         result_id = self.api.get_first_paypal_id()
         self.assertIsNone(result_id)
 
     def test_get_id(self):
         """Test standard account ID lookup by name."""
-        self.parent.get_api.return_value = {
-            "bank_accounts": [{"name": "Test", "url": "http://x/y/789"}]
-        }
+        mock_account = MagicMock()
+        mock_account.configure_mock(name="Test", url="http://x/y/789")
+        self.parent.get_api.return_value = [mock_account]
         result_id = self.api.get_id("Test")
         self.assertEqual(result_id, "789")
 
     def test_get_primary(self):
         """Test retrieval of the primary bank account ID."""
-        self.parent.get_api.return_value = {
-            "bank_accounts": [
-                {"is_primary": False, "url": "http://x/y/111"},
-                {"is_primary": True, "url": "http://x/y/222"},
-            ]
-        }
+        mock_account1 = MagicMock()
+        mock_account1.configure_mock(is_primary=False, url="http://x/y/111")
+        mock_account2 = MagicMock()
+        mock_account2.configure_mock(is_primary=True, url="http://x/y/222")
+        self.parent.get_api.return_value = [mock_account1, mock_account2]
         result_id = self.api.get_primary()
         self.assertEqual(result_id, "222")
-        self.parent.get_api.return_value = {"bank_accounts": []}
+        self.parent.get_api.return_value = []
         result_id = self.api.get_primary()
         self.assertIsNone(result_id)
 

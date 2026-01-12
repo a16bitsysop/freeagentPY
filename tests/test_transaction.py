@@ -30,7 +30,7 @@ class TransactionAPITestCase(unittest.TestCase):
         transactions = self.api.get_transactions(nominal_code, start_date, end_date)
 
         self.parent.get_api.assert_called_once_with(
-            "transactions",
+            "accounting/transactions",
             {
                 "nominal_code": nominal_code,
                 "from_date": start_date,
