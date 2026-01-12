@@ -24,9 +24,7 @@ class CategoryAPITestCase(unittest.TestCase):
                 description="Office Costs", url="http://cat/1", nominal_code="101"
             ),
             MagicMock(description="Travel", url="http://cat/2", nominal_code="202"),
-            MagicMock(
-                description="Old Office", url="http://cat/3", nominal_code="303"
-            ),
+            MagicMock(description="Old Office", url="http://cat/3", nominal_code="303"),
         ]
 
     def test_prep_categories_fetches_once(self):
