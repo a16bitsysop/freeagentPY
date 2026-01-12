@@ -115,9 +115,6 @@ class BankAPI(FreeAgentBase):
         :param dry_run: if True then do not post to freeagent, only print details
         """
         json_data = self.serialize_for_api(tx_obj)
-        json_data["category"] = self.parent.category.get_nominal_code_id(
-            tx_obj.nominal_code
-        )
 
         print(json_data["description"], json_data.get("gross_value"))
         if not dryrun:
@@ -138,9 +135,6 @@ class BankAPI(FreeAgentBase):
         :param dry_run: if True then do not post to freeagent, only print details
         """
         json_data = self.serialize_for_api(tx_obj)
-        json_data["category"] = self.parent.category.get_nominal_code_id(
-            tx_obj.nominal_code
-        )
 
         print(json_data["description"], json_data.get("gross_value"))
         if not dryrun:

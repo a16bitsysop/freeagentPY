@@ -27,7 +27,7 @@ class CategoryAPI(FreeAgentBase):
 
     def get_desc_id(self, description: str) -> str:
         """
-        Return the description id for passed category name
+        Return the category id url for passed category name
 
         :param description: name of category to find
 
@@ -57,7 +57,7 @@ class CategoryAPI(FreeAgentBase):
 
     def get_nominal_code_id(self, nominal_code: int) -> str:
         """
-        Get category id from nominal code
+        Get category id url from nominal code
 
         :param nominal_code: nominal code of category to find
 
