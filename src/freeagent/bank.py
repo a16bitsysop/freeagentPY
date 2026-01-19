@@ -19,8 +19,6 @@ class BankAPI(FreeAgentBase):
 
     :param api_base_url: the url to use for requests, defaults to normal but
         can be changed to sandbox
-    :param service_name: The service name to use with keyring for storing oauth token
-    :param token_name: The name to use for the oauth token when storing in keyring
     """
 
     def __init__(self, parent):  # pylint: disable=super-init-not-called

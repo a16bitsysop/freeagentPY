@@ -42,9 +42,9 @@ class CategoryAPI(FreeAgentBase):
 
     def get_desc_nominal_code(self, description: str) -> str:
         """
-        Return the nominal code for a given category description.
+        Return the nominal code for a given category description
 
-        :param description: The description of the category.
+        :param description: The description of the category
 
         :return: The nominal code of the category
         :raises ValueError: if category not found

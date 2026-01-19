@@ -3,11 +3,8 @@ ExplanationPayload dataclass used by this module
 """
 
 from dataclasses import dataclass
-
 from datetime import date
-
 from decimal import Decimal
-
 from typing import Optional, Dict
 
 

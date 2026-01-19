@@ -26,8 +26,6 @@ class FreeAgentBase:
 
         :param api_base_url: the url to use for requests, defaults to normal but can be
             changed to sandbox
-        :param service_name: The service name to use with keyring for storing oauth token
-        :param token_name: The name to use for the oauth token when storing in keyring
         """
         self.api_base_url = api_base_url
         self.session = None
@@ -93,7 +91,7 @@ class FreeAgentBase:
 
     def serialize_for_api(self, obj) -> dict[str, any]:
         """
-        Convert dataclasses or dicts with Decimal, date, etc. into plain API-compatible dicts.
+        Convert dataclasses or dicts with Decimal, date, etc. into plain API-compatible dicts
 
         :param obj: dataclass or dict to convert
 
@@ -117,12 +115,12 @@ class FreeAgentBase:
 
     def get_api(self, endpoint: str, params: dict = None) -> list:
         """
-        Perform an API get request, handling pagination.
+        Perform an API get request, handling pagination
 
         :param endpoint: end part of the endpoint URL
         :param params: dict of "Name": Value entries for request to process into URL
 
-        :return: A list of dataclass instances.
+        :return: A list of dataclass instances
         """
 
         if endpoint == "categories":

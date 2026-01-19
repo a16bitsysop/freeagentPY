@@ -8,7 +8,13 @@ import re
 
 
 def _infer_type(value: Any) -> Any:
-    """Infer the type of a value."""
+    """
+    Infer the type of a value
+
+    :param value: The value to guess the type of
+
+    :return: The type of the value
+    """
     inferred_type = Any
     if isinstance(value, int):
         inferred_type = int
@@ -34,7 +40,14 @@ def _infer_type(value: Any) -> Any:
 
 
 def _convert_value(value: Any, target_type: Any) -> Any:
-    """Convert a value to a target type."""
+    """
+    Convert a value to a target type
+
+    :param value: The value to convert
+    :param target_type: The type to convert to
+
+    :return: The converted value
+    """
     if value is None:
         return None
     if target_type is Decimal:
@@ -46,9 +59,13 @@ def _convert_value(value: Any, target_type: Any) -> Any:
     return value
 
 
-def make_dataclass_from_dict(class_name, data: dict, field_types: dict = None):
+def make_dataclass_from_dict(class_name: str, data: dict, field_types: dict = None):
     """
     Dynamically create a dataclass from a dictionary, with optional type conversions.
+
+    :param class_name: The name to use for the dataclass
+    :param data: The data to turn into a dataclass
+    :param field_types: dict of types for the data
     """
     if field_types is None:
         field_types = {}
