@@ -38,4 +38,3 @@ class TransactionAPI(FreeAgentBase):
         }
 
         return self.parent.get_api("accounting/transactions", params)
-    

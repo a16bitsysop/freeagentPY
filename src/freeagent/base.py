@@ -122,18 +122,6 @@ class FreeAgentBase:
 
         :return: A list of dataclass instances
         """
-
-        if endpoint == "categories":
-            response = self.session.get(self.api_base_url + endpoint, params=params)
-            response.raise_for_status()
-            json_data = response.json()
-
-            items = []
-            for category_list in json_data.values():
-                for category_data in category_list:
-                    items.append(make_dataclass_from_dict("category", category_data))
-            return items
-
         if params is None:
             params = {}
 

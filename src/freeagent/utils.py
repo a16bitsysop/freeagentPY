@@ -96,3 +96,19 @@ def make_dataclass_from_dict(class_name: str, data: dict, field_types: dict = No
             if k in data_class.__dataclass_fields__
         }
     )
+
+
+def list_to_dataclasses(class_name: str, data_list: list) -> list:
+    """
+    Convert a list of dictionaries to a list of dataclasses
+
+    :param class_name: name of the dataclass
+    :param data_list: list of dictionaries
+
+    :return: list of dataclasses
+    """
+    return [
+        make_dataclass_from_dict(class_name, item)
+        for item in data_list
+        if isinstance(item, dict)
+    ]

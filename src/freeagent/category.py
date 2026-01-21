@@ -4,6 +4,7 @@ categories are cached after first run
 """
 
 from .base import FreeAgentBase
+from .utils import list_to_dataclasses
 
 
 class CategoryAPI(FreeAgentBase):
@@ -16,14 +17,24 @@ class CategoryAPI(FreeAgentBase):
         Initialize the class
         """
         self.parent = parent  # the main FreeAgent instance
-        self.categories = {}
+        self.categories = []
 
     def _prep_categories(self):
         """
         get the categories if not already done
         """
-        if not self.categories:
-            self.categories = self.parent.get_api("categories")
+        if self.categories:
+            return
+
+        response = self.parent.get_api("categories")
+        if not response:
+            return
+
+        container = response[0]
+        self.categories = []
+        for value in vars(container).values():
+            if isinstance(value, list):
+                self.categories.extend(list_to_dataclasses("Category", value))
 
     def get_desc_id(self, description: str) -> str:
         """
