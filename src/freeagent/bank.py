@@ -181,19 +181,21 @@ class BankAPI(FreeAgentBase):
             else:
                 raise ValueError(f"Unknown item type: {type(item)}")
 
-        category_display = self.parent.category.get_nominal_name(payload.nominal_code)
-        description = (
-            (payload.description or "").replace(separator, "\n")
-            if separator
-            else payload.description
-        )
-        table.add_row(
-            str(payload.dated_on),
-            description,
-            str(payload.gross_value),
-            category_display,
-            desc,
-        )
+            category_display = self.parent.category.get_nominal_name(
+                payload.nominal_code
+            )
+            description = (
+                (payload.description or "").replace(separator, "\n")
+                if separator
+                else payload.description
+            )
+            table.add_row(
+                str(payload.dated_on),
+                description,
+                str(payload.gross_value),
+                category_display,
+                desc,
+            )
         console = Console()
         console.print(table)
 
