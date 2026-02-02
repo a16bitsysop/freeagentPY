@@ -10,7 +10,8 @@ license = "MIT"
 license-files = ["LICENSE"]
 dynamic = ["version", "description"]
 dependencies = [
-    "requests-oauthlib"
+    "requests-oauthlib",
+    "rich",
 ]
 requires-python = ">=3.8"
 

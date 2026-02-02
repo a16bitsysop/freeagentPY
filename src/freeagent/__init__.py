@@ -12,7 +12,7 @@ from .base import FreeAgentBase
 from .bank import BankAPI
 from .category import CategoryAPI
 from .transaction import TransactionAPI
-from .payload import ExplanationPayload
+from .payload import ExplanationPayload, UpdatePayload
 
 
 class FreeAgent(FreeAgentBase):

@@ -90,6 +90,15 @@ class CategoryAPITestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.api.get_nominal_code_id(999)
 
+    def test_get_nominal_name_finds_name(self):
+        """Test category name lookup by nominal code."""
+        name = self.api.get_nominal_name(101)
+        self.assertEqual(name, "Office Costs")
+        name = self.api.get_nominal_name(202)
+        self.assertEqual(name, "Travel")
+        with self.assertRaises(ValueError):
+            self.api.get_nominal_name(999)
+
     def test_caching_persists_for_getters(self):
         """Test that cached categories persist across lookups."""
         # First call populates cache

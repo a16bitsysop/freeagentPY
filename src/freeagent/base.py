@@ -86,7 +86,7 @@ class FreeAgentBase:
         user_info = self.get_api("users/me")
         first_name = user_info[0].user["first_name"]
         last_name = user_info[0].user["last_name"]
-        print(f"✅ Authenticated! User info: {first_name} {last_name}")
+        print(f"✅ Authenticated with FreeAgent! User info: {first_name} {last_name}")
         print()
 
     def serialize_for_api(self, obj) -> dict[str, any]:

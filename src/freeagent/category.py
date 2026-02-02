@@ -80,3 +80,18 @@ class CategoryAPI(FreeAgentBase):
             if str(nominal_code) == cat.nominal_code:
                 return cat.url
         raise ValueError(f"Category with nominal code '{nominal_code}' not found.")
+
+    def get_nominal_name(self, nominal_code: int) -> str:
+        """
+        Get category name from nominal code
+
+        :param nominal_code: nominal code of category to find
+
+        :return: name (description) of the category
+        :raises ValueError: if category not found
+        """
+        self._prep_categories()
+        for cat in self.categories:
+            if str(nominal_code) == cat.nominal_code:
+                return cat.description
+        raise ValueError(f"Category with nominal code '{nominal_code}' not found.")

@@ -6,8 +6,11 @@ about bank accounts on freeagent
 from base64 import b64encode
 from pathlib import Path
 
+from rich.console import Console
+from rich.table import Table
+
 from .base import FreeAgentBase
-from .payload import ExplanationPayload
+from .payload import ExplanationPayload, UpdatePayload
 
 
 class BankAPI(FreeAgentBase):
@@ -105,16 +108,20 @@ class BankAPI(FreeAgentBase):
             "data": file_data,
         }
 
-    def explain_transaction(self, tx_obj: ExplanationPayload, dryrun: bool = False):
+    def explain_transaction(
+        self, tx_obj: ExplanationPayload, printout: bool = True, dryrun: bool = False
+    ):
         """
         Post the explanation to freeagent in the passed ExplanationPayload tx_obj
 
         :param tx_obj: ExplanationPayload to use
+        :param printout: Print out the desciption and gross value
         :param dry_run: if True then do not post to freeagent, only print details
         """
         json_data = self.serialize_for_api(tx_obj)
 
-        print(json_data["description"], json_data.get("gross_value"))
+        if printout:
+            print(json_data["description"], json_data.get("gross_value"))
         if not dryrun:
             self.parent.post_api(
                 "bank_transaction_explanations",
@@ -123,20 +130,92 @@ class BankAPI(FreeAgentBase):
             )
 
     def explain_update(
-        self, url: str, tx_obj: ExplanationPayload, dryrun: bool = False
+        self,
+        url: str,
+        tx_obj: ExplanationPayload,
+        printout: bool = True,
+        dryrun: bool = False,
     ):
         """
         Update an existing explanation on freeagent with the passed url
 
         :param url: url attribute of the bank transaction explanation to change
         :param tx_obj: ExplanationPayload to use for updating the explanation
+        :param printout: Print out the desciption and gross value
         :param dry_run: if True then do not post to freeagent, only print details
         """
         json_data = self.serialize_for_api(tx_obj)
 
-        print(json_data["description"], json_data.get("gross_value"))
+        if printout:
+            print(json_data["description"], json_data.get("gross_value"))
         if not dryrun:
             self.parent.put_api(url, "bank_transaction_explanation", json_data)
+
+    def explain_list(self, items: list, dryrun: bool = False, separator: str = None):
+        """
+        Iterate through a list of UpdatePayload or ExplanationPayload and call
+        explain_update or explain_transaction accordingly.
+
+        :param items: list of UpdatePayload or ExplanationPayload objects
+        :param dryrun: if True then do not post to freeagent, only print details
+        :param separator: optional string to replace with newlines in description for table output
+        """
+        table = Table(title="Bank Explanations")
+        table.add_column("Date", style="cyan", no_wrap=True)
+        table.add_column("Description", style="magenta")
+        table.add_column("Amount", justify="right", style="green")
+        table.add_column("Category", style="yellow")
+        table.add_column("Type", style="blue")
+
+        for item in items:
+            if isinstance(item, UpdatePayload):
+                payload = item.payload
+                description = (
+                    (payload.description or "").replace(separator, "\n")
+                    if separator
+                    else payload.description
+                )
+                try:
+                    category_display = self.parent.category.get_nominal_name(
+                        payload.nominal_code
+                    )
+                except ValueError:
+                    category_display = payload.nominal_code
+
+                table.add_row(
+                    str(payload.dated_on),
+                    description,
+                    str(payload.gross_value),
+                    category_display,
+                    "Update",
+                )
+                self.explain_update(item.url, payload, printout=False, dryrun=dryrun)
+            elif isinstance(item, ExplanationPayload):
+                description = (
+                    (item.description or "").replace(separator, "\n")
+                    if separator
+                    else item.description
+                )
+                try:
+                    category_display = self.parent.category.get_nominal_name(
+                        item.nominal_code
+                    )
+                except ValueError:
+                    category_display = item.nominal_code
+
+                table.add_row(
+                    str(item.dated_on),
+                    description,
+                    str(item.gross_value),
+                    category_display,
+                    "New",
+                )
+                self.explain_transaction(item, printout=False, dryrun=dryrun)
+            else:
+                raise ValueError(f"Unknown item type: {type(item)}")
+
+        console = Console()
+        console.print(table)
 
     def get_unexplained_transactions(self, account_id: str) -> list:
         """

@@ -13,6 +13,7 @@ import base64
 
 # Import BankAPI from bank.py
 from freeagent.bank import BankAPI
+from freeagent.payload import ExplanationPayload, UpdatePayload
 
 
 # Dummy ExplanationPayload class for testing
@@ -37,6 +38,8 @@ class BankAPITestCase(unittest.TestCase):
         # Dummy parent with API methods mocked
         self.parent = MagicMock()
         self.api = BankAPI(self.parent)
+        # Mock category lookup
+        self.parent.category.get_nominal_name.return_value = "Test Category"
 
     def test_check_file_size_allows_small_file(self):
         """Test that a small file passes file size validation."""
@@ -124,6 +127,75 @@ class BankAPITestCase(unittest.TestCase):
         )
         self.api.explain_update("url", payload, dryrun=False)
         self.parent.put_api.assert_called_once()
+
+    def test_explain_list(self):
+        """Test explain_list iterates and calls appropriate methods."""
+        # Mock explain_transaction and explain_update
+        self.api.explain_transaction = MagicMock()
+        self.api.explain_update = MagicMock()
+
+        # Create payloads
+        explanation_payload = ExplanationPayload(
+            nominal_code="001", dated_on="2023-01-01", gross_value=100
+        )
+        update_payload = UpdatePayload(
+            url="http://test/1",
+            payload=ExplanationPayload(
+                nominal_code="002", dated_on="2023-01-02", gross_value=200
+            ),
+        )
+
+        # Call explain_list
+        self.api.explain_list(
+            [explanation_payload, update_payload], dryrun=True, separator=" | "
+        )
+
+        # Verify calls
+        self.api.explain_transaction.assert_called_once_with(
+            explanation_payload, printout=False, dryrun=True
+        )
+        self.api.explain_update.assert_called_once_with(
+            update_payload.url, update_payload.payload, printout=False, dryrun=True
+        )
+
+    def test_explain_list_with_separator(self):
+        """Test explain_list with a custom separator."""
+        # Mock explain_transaction
+        self.api.explain_transaction = MagicMock()
+
+        # Create payload with custom separator
+        explanation_payload = ExplanationPayload(
+            nominal_code="001",
+            dated_on="2023-01-01",
+            gross_value=100,
+            description="Part1 || Part2",
+        )
+
+        # Call explain_list with custom separator
+        self.api.explain_list([explanation_payload], dryrun=True, separator=" || ")
+
+        # Verify calls
+        self.api.explain_transaction.assert_called_once_with(
+            explanation_payload, printout=False, dryrun=True
+        )
+
+    def test_explain_list_category_fallback(self):
+        """Test explain_list falls back to nominal code if category lookup fails."""
+        self.api.explain_transaction = MagicMock()
+        # Make category lookup fail
+        self.parent.category.get_nominal_name.side_effect = ValueError("Not found")
+
+        explanation_payload = ExplanationPayload(
+            nominal_code="999",
+            dated_on="2023-01-01",
+            gross_value=100,
+            description="Test",
+        )
+
+        self.api.explain_list([explanation_payload], dryrun=True)
+        # No assertion needed for display, just ensure it doesn't crash
+        # and calls explain_transaction
+        self.api.explain_transaction.assert_called_once()
 
     def test_get_unexplained_transactions(self):
         """Test retrieval of unexplained transactions."""

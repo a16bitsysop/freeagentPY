@@ -1,5 +1,5 @@
 """
-ExplanationPayload dataclass used by this module
+Payload dataclasses used by this module
 """
 
 from dataclasses import dataclass
@@ -21,3 +21,13 @@ class ExplanationPayload:
     bank_transaction: Optional[str] = None  # Required for new explanations
     attachment: Optional[Dict] = None
     transfer_bank_account: Optional[str] = None
+
+
+@dataclass
+class UpdatePayload:
+    """
+    dataclass used to store data for updating an existing explanation
+    """
+
+    url: str
+    payload: ExplanationPayload
