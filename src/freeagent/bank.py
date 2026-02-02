@@ -170,50 +170,30 @@ class BankAPI(FreeAgentBase):
         for item in items:
             if isinstance(item, UpdatePayload):
                 payload = item.payload
-                description = (
-                    (payload.description or "").replace(separator, "\n")
-                    if separator
-                    else payload.description
-                )
-                try:
-                    category_display = self.parent.category.get_nominal_name(
-                        payload.nominal_code
-                    )
-                except ValueError:
-                    category_display = payload.nominal_code
-
-                table.add_row(
-                    str(payload.dated_on),
-                    description,
-                    str(payload.gross_value),
-                    category_display,
-                    "Update",
-                )
+                desc = "Update"
                 self.explain_update(item.url, payload, printout=False, dryrun=dryrun)
-            elif isinstance(item, ExplanationPayload):
-                description = (
-                    (item.description or "").replace(separator, "\n")
-                    if separator
-                    else item.description
-                )
-                try:
-                    category_display = self.parent.category.get_nominal_name(
-                        item.nominal_code
-                    )
-                except ValueError:
-                    category_display = item.nominal_code
 
-                table.add_row(
-                    str(item.dated_on),
-                    description,
-                    str(item.gross_value),
-                    category_display,
-                    "New",
-                )
+            elif isinstance(item, ExplanationPayload):
+                payload = item
+                desc = "New"
                 self.explain_transaction(item, printout=False, dryrun=dryrun)
+
             else:
                 raise ValueError(f"Unknown item type: {type(item)}")
 
+        category_display = self.parent.category.get_nominal_name(payload.nominal_code)
+        description = (
+            (payload.description or "").replace(separator, "\n")
+            if separator
+            else payload.description
+        )
+        table.add_row(
+            str(payload.dated_on),
+            description,
+            str(payload.gross_value),
+            category_display,
+            desc,
+        )
         console = Console()
         console.print(table)
 
