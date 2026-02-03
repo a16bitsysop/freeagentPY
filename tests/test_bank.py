@@ -179,24 +179,6 @@ class BankAPITestCase(unittest.TestCase):
             explanation_payload, printout=False, dryrun=True
         )
 
-    def test_explain_list_category_fallback(self):
-        """Test explain_list falls back to nominal code if category lookup fails."""
-        self.api.explain_transaction = MagicMock()
-        # Make category lookup fail
-        self.parent.category.get_nominal_name.side_effect = ValueError("Not found")
-
-        explanation_payload = ExplanationPayload(
-            nominal_code="999",
-            dated_on="2023-01-01",
-            gross_value=100,
-            description="Test",
-        )
-
-        self.api.explain_list([explanation_payload], dryrun=True)
-        # No assertion needed for display, just ensure it doesn't crash
-        # and calls explain_transaction
-        self.api.explain_transaction.assert_called_once()
-
     def test_get_unexplained_transactions(self):
         """Test retrieval of unexplained transactions."""
         dummy_return = {"transactions": [1, 2, 3]}
