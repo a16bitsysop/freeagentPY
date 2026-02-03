@@ -1,4 +1,4 @@
-name: Publish to PyPI and gh pages
+name: Publish to PyPI
 
 on:
   push:
@@ -9,6 +9,9 @@ jobs:
   build:
     name: 📦 Build distribution
     runs-on: ubuntu-latest
+    outputs:
+      pkg_pypi: ${{ steps.pkg.outputs.pypi }}
+      pkg_path: ${{ steps.pkg.outputs.path }}
 
     steps:
     - name: 📥 Checkout code
@@ -20,6 +23,10 @@ jobs:
       uses: actions/setup-python@v6
       with:
         python-version: "3.x"
+
+    - name: ⚙️ Detect package path
+      id: pkg
+      uses: a16bitsysop/pyproject-info@main
 
     - name: 🛠️ Install pypa/build
       run: >-
@@ -41,7 +48,7 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: version.py
-        path: src/freeagent/_version.py
+        path: ${{ steps.pkg.outputs.path }}/_version.py
 
   publish-to-pypi:
     name: >-
@@ -52,12 +59,12 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/f/freeagent
+      url: https://pypi.org/project/${{ needs.build.outputs.pkg_pypi }}
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
     steps:
 
-    - name: 💾 Download all the dists
+    - name: 💾 Download the dist
       uses: actions/download-artifact@v7
       with:
         name: python-package-distributions
@@ -75,13 +82,13 @@ jobs:
 
     environment:
       name: testpypi
-      url: https://test.pypi.org/f/freeagent
+      url: https://test.pypi.org/project/${{ needs.build.outputs.pkg_pypi }}
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
 
     steps:
-    - name: 💾 Download all the dists
+    - name: 💾 Download the dist
       uses: actions/download-artifact@v7
       with:
         name: python-package-distributions
