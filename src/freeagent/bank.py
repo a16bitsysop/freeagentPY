@@ -181,9 +181,12 @@ class BankAPI(FreeAgentBase):
             else:
                 raise ValueError(f"Unknown item type: {type(item)}")
 
-            category_display = self.parent.category.get_nominal_name(
-                payload.nominal_code
-            )
+            if getattr(payload, "transfer_bank_account", None):
+                category_display = "Transfer"
+            else:
+                category_display = self.parent.category.get_nominal_name(
+                    payload.nominal_code
+                )
             description = (
                 (payload.description or "").replace(separator, "\n")
                 if separator
