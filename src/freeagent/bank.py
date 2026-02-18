@@ -161,7 +161,7 @@ class BankAPI(FreeAgentBase):
         :param dryrun: if True then do not post to freeagent, only print details
         :param separator: optional string to replace with newlines in description for table output
         """
-        table = Table(title="Bank Explanations")
+        table = Table(title="Explanation for transaction")
         table.add_column("Date", style="cyan", no_wrap=True)
         table.add_column("Description", style="magenta")
         table.add_column("Amount", justify="right", style="green")
