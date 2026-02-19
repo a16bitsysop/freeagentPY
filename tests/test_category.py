@@ -56,16 +56,16 @@ class CategoryAPITestCase(unittest.TestCase):
 
     def test_prep_categories_fetches_once(self):
         """Test that categories are fetched from the parent once and then cached."""
-        self.api._prep_categories()
+        categories = self.api.categories
 
         # Verify the categories were flattened and converted
-        self.assertEqual(len(self.api.categories), 3)
-        descriptions = sorted([c.description for c in self.api.categories])
+        self.assertEqual(len(categories), 3)
+        descriptions = sorted([c.description for c in categories])
         expected_descriptions = sorted(["Office Costs", "Travel", "Old Office"])
         self.assertEqual(descriptions, expected_descriptions)
 
         # Should not call get_api again if already cached
-        self.api._prep_categories()
+        _ = self.api.categories
         self.parent.get_api.assert_called_once_with("categories")
 
     def test_get_desc_id_finds_description(self):

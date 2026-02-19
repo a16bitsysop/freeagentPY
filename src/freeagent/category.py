@@ -17,24 +17,31 @@ class CategoryAPI(FreeAgentBase):
         Initialize the class
         """
         self.parent = parent  # the main FreeAgent instance
-        self.categories = []
+        self._categories = None
 
-    def _prep_categories(self):
+    @property
+    def categories(self):
         """
-        get the categories if not already done
+        Property to lazy load categories
         """
-        if self.categories:
-            return
+        if self._categories is None:
+            response = self.parent.get_api("categories")
+            if not response:
+                return []
 
-        response = self.parent.get_api("categories")
-        if not response:
-            return
+            container = response[0]
+            self._categories = []
+            for value in vars(container).values():
+                if isinstance(value, list):
+                    self._categories.extend(list_to_dataclasses("Category", value))
+        return self._categories
 
-        container = response[0]
-        self.categories = []
-        for value in vars(container).values():
-            if isinstance(value, list):
-                self.categories.extend(list_to_dataclasses("Category", value))
+    @categories.setter
+    def categories(self, value):
+        """
+        Setter for categories
+        """
+        self._categories = value
 
     def get_desc_id(self, description: str) -> str:
         """
@@ -45,7 +52,6 @@ class CategoryAPI(FreeAgentBase):
         :return: id url of the category
         :raises ValueError: if category not found
         """
-        self._prep_categories()
         for cat in self.categories:
             if description.lower() in cat.description.lower():
                 return cat.url
@@ -60,7 +66,6 @@ class CategoryAPI(FreeAgentBase):
         :return: The nominal code of the category
         :raises ValueError: if category not found
         """
-        self._prep_categories()
         for cat in self.categories:
             if description.lower() in cat.description.lower():
                 return cat.nominal_code
@@ -75,7 +80,6 @@ class CategoryAPI(FreeAgentBase):
         :return: id url of the category
         :raises ValueError: if category not found
         """
-        self._prep_categories()
         for cat in self.categories:
             if str(nominal_code) == cat.nominal_code:
                 return cat.url
@@ -90,7 +94,6 @@ class CategoryAPI(FreeAgentBase):
         :return: name (description) of the category
         :raises ValueError: if category not found
         """
-        self._prep_categories()
         for cat in self.categories:
             if str(nominal_code) == cat.nominal_code:
                 return cat.description

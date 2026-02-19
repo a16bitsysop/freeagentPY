@@ -29,7 +29,6 @@ class BankAPI(FreeAgentBase):
         Initialize the BankAPI class
         """
         self.parent = parent  # the main FreeAgent instance
-        self._bank_cache = {}
 
     def _check_file_size(self, path: Path) -> int:
         """
@@ -175,12 +174,8 @@ class BankAPI(FreeAgentBase):
                 bank = self.parent.get_api(
                     item.url.removeprefix(self.parent.api_base_url)
                 )
-                bank_id = (
-                    bank[0]
-                    .bank_transaction_explanation["bank_account"]
-                    .rsplit("/", 1)[-1]
-                )
-                update = self._find_bank_name(bank_id)
+                bank_uri = bank[0].bank_transaction_explanation["bank_account"]
+                update = self.parent.bank_account.get_name_by_uri(bank_uri)
                 table.title = f"Explanation for {update} transaction"
                 self.explain_update(item.url, payload, printout=False, dryrun=dryrun)
 
@@ -223,118 +218,3 @@ class BankAPI(FreeAgentBase):
         """
         params = {"bank_account": account_id, "view": "unexplained"}
         return self.parent.get_api("bank_transactions", params)
-
-    def _update_cache(self, bank_accounts: list):
-        """
-        Update the bank cache with the passed list of bank accounts
-
-        :param bank_accounts: a list of the bank accounts on freeagent
-        """
-        for account in bank_accounts:
-            bank_id = account.url.rsplit("/", 1)[-1]
-            self._bank_cache[bank_id] = account.name
-
-    def _find_bank_id(self, bank_accounts: list, account_name: str) -> str:
-        """
-        Get the freeagent bank account ID for account_name
-
-        :param bank_accounts: a list of the bank accounts on freeagent
-        :param account_name: name of the account to find
-
-        :return: the id of the bank account or None if not found
-        """
-        self._update_cache(bank_accounts)
-        for account in bank_accounts:
-            if account.name.lower() == account_name.lower():
-                return account.url.rsplit("/", 1)[-1]
-        return None
-
-    def _find_bank_name(self, bank_id: int) -> str:
-        """
-        Get the bank account name for a bank account id
-
-        :param bank_id: the bank account id number to find
-
-        :return: the name of the bank account
-        """
-        bank_id_str = str(bank_id)
-        if bank_id_str in self._bank_cache:
-            return self._bank_cache[bank_id_str]
-
-        res = self.parent.get_api(f"bank_accounts/{bank_id}")
-        name = res[0].bank_account["name"]
-        self._bank_cache[bank_id_str] = name
-        return name
-
-    def get_paypal_id(self, account_name: str) -> str:
-        """
-        Get the ID of PayPal account on freeagent
-
-        :param account_name: name of the account to find
-
-        :return: ID of the named PayPal account or None
-        """
-        for bank_id, name in self._bank_cache.items():
-            if name.lower() == account_name.lower():
-                return bank_id
-
-        params = {"view": "paypal_accounts"}
-        response = self.parent.get_api("bank_accounts", params)
-        return self._find_bank_id(response, account_name)
-
-    def get_first_paypal_id(self) -> str:
-        """
-        Get the ID of the first PayPal account on freeagent
-
-        :return: ID of the first PayPal account or None if there is no PayPal account
-        """
-        params = {"view": "paypal_accounts"}
-        response = self.parent.get_api("bank_accounts", params)
-        self._update_cache(response)
-        if response:
-            return response[0].url.rsplit("/", 1)[-1]
-        return None
-
-    def get_id(self, account_name: str) -> str:
-        """
-        Get the ID of account_name searching standard bank accounts
-
-        :param account_name: name of the account to find
-
-        :return: ID of the account or None if not found
-        """
-        for bank_id, name in self._bank_cache.items():
-            if name.lower() == account_name.lower():
-                return bank_id
-
-        params = {"view": "standard_bank_accounts"}
-        response = self.parent.get_api("bank_accounts", params)
-        return self._find_bank_id(response, account_name)
-
-    def get_primary(self):
-        """
-        Get the ID of the primary bank account on freeagent (current account)
-
-        :return: ID of the account or None if not found
-        """
-        params = {"view": "standard_bank_accounts"}
-        response = self.parent.get_api("bank_accounts", params)
-        self._update_cache(response)
-        for acct in response:
-            if getattr(acct, "is_primary", False):
-                return acct.url.rsplit("/", 1)[-1]
-        return None
-
-    def get_primary_uri(self):
-        """
-        Get the uri for the primary bank account on freeagent (current account)
-
-        :return: uri of the account or None if not found
-        """
-        params = {"view": "standard_bank_accounts"}
-        response = self.parent.get_api("bank_accounts", params)
-        self._update_cache(response)
-        for acct in response:
-            if getattr(acct, "is_primary", False):
-                return acct.url
-        return None

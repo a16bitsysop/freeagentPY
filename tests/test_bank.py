@@ -39,7 +39,8 @@ class BankAPITestCase(unittest.TestCase):
         self.parent = MagicMock()
         self.parent.api_base_url = "https://api.freeagent.com/v2/"
         self.api = BankAPI(self.parent)
-        # Mock category lookup
+        # Mock bank_account and category lookup
+        self.parent.bank_account = MagicMock()
         self.parent.category.get_nominal_name.return_value = "Test Category"
 
     def test_check_file_size_allows_small_file(self):
@@ -187,93 +188,6 @@ class BankAPITestCase(unittest.TestCase):
         result = self.api.get_unexplained_transactions("accid")
         self.parent.get_api.assert_called_once()
         self.assertEqual(result, dummy_return)
-
-    def test_get_paypal_id_works(self):
-        """Test finding PayPal account ID by name."""
-        mock_account = MagicMock()
-        mock_account.configure_mock(name="PayPal Account", url="http://x/y/123")
-        self.parent.get_api.return_value = [mock_account]
-        result_id = self.api.get_paypal_id("PayPal Account")
-        self.assertEqual(result_id, "123")
-
-    def test_get_first_paypal_id(self):
-        """Test retrieval of the first PayPal account ID."""
-        mock_account = MagicMock()
-        mock_account.configure_mock(url="http://x/y/456")
-        self.parent.get_api.return_value = [mock_account]
-        result_id = self.api.get_first_paypal_id()
-        self.assertEqual(result_id, "456")
-        self.parent.get_api.return_value = []
-        result_id = self.api.get_first_paypal_id()
-        self.assertIsNone(result_id)
-
-    def test_get_id(self):
-        """Test standard account ID lookup by name."""
-        mock_account = MagicMock()
-        mock_account.configure_mock(name="Test", url="http://x/y/789")
-        self.parent.get_api.return_value = [mock_account]
-        result_id = self.api.get_id("Test")
-        self.assertEqual(result_id, "789")
-
-    def test_get_primary(self):
-        """Test retrieval of the primary bank account ID."""
-        mock_account1 = MagicMock()
-        mock_account1.configure_mock(is_primary=False, url="http://x/y/111")
-        mock_account2 = MagicMock()
-        mock_account2.configure_mock(is_primary=True, url="http://x/y/222")
-        self.parent.get_api.return_value = [mock_account1, mock_account2]
-        result_id = self.api.get_primary()
-        self.assertEqual(result_id, "222")
-        self.parent.get_api.return_value = []
-        result_id = self.api.get_primary()
-        self.assertIsNone(result_id)
-
-    def test_bank_name_caching(self):
-        """Test that bank name lookup uses the cache."""
-        mock_account = MagicMock()
-        mock_account.configure_mock(
-            name="Cached Bank",
-            url="http://x/y/123",
-            bank_account={"name": "Cached Bank"},
-        )
-
-        # First call should hit the API
-        self.parent.get_api.return_value = [mock_account]
-        name1 = self.api._find_bank_name(123)
-        self.assertEqual(name1, "Cached Bank")
-        self.assertEqual(self.parent.get_api.call_count, 1)
-
-        # Second call should use cache
-        name2 = self.api._find_bank_name(123)
-        self.assertEqual(name2, "Cached Bank")
-        self.assertEqual(self.parent.get_api.call_count, 1)
-
-        # Pre-populating cache via get_id
-        mock_account2 = MagicMock()
-        mock_account2.configure_mock(name="New Bank", url="http://x/y/456")
-        self.parent.get_api.return_value = [mock_account2]
-        self.api.get_id("New Bank")
-        self.assertEqual(self.parent.get_api.call_count, 2)
-
-        # Lookup by ID should now be cached
-        name3 = self.api._find_bank_name(456)
-        self.assertEqual(name3, "New Bank")
-        self.assertEqual(self.parent.get_api.call_count, 2)
-
-    def test_get_id_caching(self):
-        """Test that get_id uses the cache."""
-        mock_account = MagicMock()
-        mock_account.configure_mock(name="Cached Bank", url="http://x/y/123")
-
-        # Pre-populate cache
-        self.parent.get_api.return_value = [mock_account]
-        self.api.get_id("Cached Bank")
-        self.assertEqual(self.parent.get_api.call_count, 1)
-
-        # Second call should use cache and not call API
-        result_id = self.api.get_id("Cached Bank")
-        self.assertEqual(result_id, "123")
-        self.assertEqual(self.parent.get_api.call_count, 1)
 
 
 if __name__ == "__main__":
