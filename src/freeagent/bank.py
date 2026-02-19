@@ -212,9 +212,12 @@ class BankAPI(FreeAgentBase):
         """
         Return a list of unexplained transaction objects for the bank account with id of account_id
 
-        :param account_id: account id to use, not the whole url
+        :param account_id: account id to use, or the whole url
 
         :return: list of the unexplained transactions
         """
+        if not account_id.startswith("http"):
+            account_id = f"{self.parent.api_base_url}bank_accounts/{account_id}"
+
         params = {"bank_account": account_id, "view": "unexplained"}
         return self.parent.get_api("bank_transactions", params)

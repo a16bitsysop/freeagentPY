@@ -45,8 +45,16 @@ class BankAccountAPI(FreeAgentBase):
         """
         for acct in self.bank_accounts:
             if acct.name.lower() == name.lower():
-                if account_type and getattr(acct, "type", None) != account_type:
-                    continue
+                actual_type = getattr(acct, "type", None)
+                if account_type:
+                    if account_type == "PaypalAccount":
+                        if actual_type not in [
+                            "PaypalAccount",
+                            "Paypal::CurrencyAccount",
+                        ]:
+                            continue
+                    elif actual_type != account_type:
+                        continue
                 return acct.url.rsplit("/", 1)[-1]
         return None
 
@@ -88,7 +96,11 @@ class BankAccountAPI(FreeAgentBase):
         :return: ID of the first account or None
         """
         for acct in self.bank_accounts:
-            if getattr(acct, "type", None) == account_type:
+            actual_type = getattr(acct, "type", None)
+            if account_type == "PaypalAccount":
+                if actual_type in ["PaypalAccount", "Paypal::CurrencyAccount"]:
+                    return acct.url.rsplit("/", 1)[-1]
+            elif actual_type == account_type:
                 return acct.url.rsplit("/", 1)[-1]
         return None
 

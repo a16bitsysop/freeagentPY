@@ -186,7 +186,24 @@ class BankAPITestCase(unittest.TestCase):
         dummy_return = {"transactions": [1, 2, 3]}
         self.parent.get_api.return_value = dummy_return
         result = self.api.get_unexplained_transactions("accid")
-        self.parent.get_api.assert_called_once()
+
+        # Verify it was called with the full URL
+        expected_url = "https://api.freeagent.com/v2/bank_accounts/accid"
+        self.parent.get_api.assert_called_once_with(
+            "bank_transactions", {"bank_account": expected_url, "view": "unexplained"}
+        )
+        self.assertEqual(result, dummy_return)
+
+    def test_get_unexplained_transactions_with_url(self):
+        """Test retrieval when a full URL is already provided."""
+        dummy_return = {"transactions": [1, 2, 3]}
+        self.parent.get_api.return_value = dummy_return
+        full_url = "https://api.freeagent.com/v2/bank_accounts/123"
+        result = self.api.get_unexplained_transactions(full_url)
+
+        self.parent.get_api.assert_called_with(
+            "bank_transactions", {"bank_account": full_url, "view": "unexplained"}
+        )
         self.assertEqual(result, dummy_return)
 
 

@@ -108,6 +108,24 @@ class BankAccountAPITestCase(unittest.TestCase):
         self.api.bank_accounts = [acct]
         self.assertEqual(self.api.get_first_paypal_id(), "2")
 
+    def test_get_id_by_name_paypal_currency(self):
+        """Test finding a bank account ID by name with Paypal::CurrencyAccount type."""
+        acct = MagicMock()
+        acct.configure_mock(
+            name="PayPal", url="http://x/2", type="Paypal::CurrencyAccount"
+        )
+        self.api.bank_accounts = [acct]
+        self.assertEqual(self.api.get_id_by_name("PayPal", "PaypalAccount"), "2")
+
+    def test_get_first_paypal_id_currency(self):
+        """Test retrieval of the first PayPal account ID with Paypal::CurrencyAccount type."""
+        acct = MagicMock()
+        acct.configure_mock(
+            name="PayPal", url="http://x/2", type="Paypal::CurrencyAccount"
+        )
+        self.api.bank_accounts = [acct]
+        self.assertEqual(self.api.get_first_paypal_id(), "2")
+
     def test_get_id(self):
         """Test standard account ID lookup by name."""
         acct = MagicMock()
