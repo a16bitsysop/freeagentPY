@@ -39,22 +39,17 @@ class BankAccountAPI(FreeAgentBase):
         Get the ID of a bank account by name
 
         :param name: name of the account to find
-        :param account_type: optional type of account to filter by
+        :param account_type: optional type or list of types of account to filter by
 
         :return: ID of the account or None if not found
         """
+        if account_type:
+            account_type = account_type.replace("Account", "")
+
         for acct in self.bank_accounts:
             if acct.name.lower() == name.lower():
-                actual_type = getattr(acct, "type", None)
-                if account_type:
-                    if account_type == "PaypalAccount":
-                        if actual_type not in [
-                            "PaypalAccount",
-                            "Paypal::CurrencyAccount",
-                        ]:
-                            continue
-                    elif actual_type != account_type:
-                        continue
+                if account_type and not acct.type.startswith(account_type):
+                    continue
                 return acct.url.rsplit("/", 1)[-1]
         return None
 
@@ -91,16 +86,13 @@ class BankAccountAPI(FreeAgentBase):
         """
         Get the ID of the first account of a certain type
 
-        :param account_type: type of account (e.g. 'PaypalAccount')
+        :param account_type: type or list of types of account (e.g. 'PaypalAccount')
 
         :return: ID of the first account or None
         """
+        account_type = account_type.replace("Account", "")
         for acct in self.bank_accounts:
-            actual_type = getattr(acct, "type", None)
-            if account_type == "PaypalAccount":
-                if actual_type in ["PaypalAccount", "Paypal::CurrencyAccount"]:
-                    return acct.url.rsplit("/", 1)[-1]
-            elif actual_type == account_type:
+            if acct.type.startswith(account_type):
                 return acct.url.rsplit("/", 1)[-1]
         return None
 
@@ -110,9 +102,9 @@ class BankAccountAPI(FreeAgentBase):
 
         :return: ID of the account or None
         """
-        for acct in self.bank_accounts:
-            if getattr(acct, "is_primary", False):
-                return acct.url.rsplit("/", 1)[-1]
+        url = self.get_primary_url()
+        if url:
+            return url.rsplit("/", 1)[-1]
         return None
 
     def get_primary_url(self) -> str:
@@ -122,7 +114,7 @@ class BankAccountAPI(FreeAgentBase):
         :return: url of the account or None
         """
         for acct in self.bank_accounts:
-            if getattr(acct, "is_primary", False):
+            if acct.is_primary:
                 return acct.url
         return None
 
