@@ -39,7 +39,7 @@ class BankAccountAPI(FreeAgentBase):
         Get the ID of a bank account by name
 
         :param name: name of the account to find
-        :param account_type: optional type or list of types of account to filter by
+        :param account_type: optional type of account to filter by
 
         :return: ID of the account or None if not found
         """
@@ -86,7 +86,7 @@ class BankAccountAPI(FreeAgentBase):
         """
         Get the ID of the first account of a certain type
 
-        :param account_type: type or list of types of account (e.g. 'PaypalAccount')
+        :param account_type: type to search (e.g. 'PaypalAccount')
 
         :return: ID of the first account or None
         """
