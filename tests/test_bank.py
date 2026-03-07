@@ -160,6 +160,34 @@ class BankAPITestCase(unittest.TestCase):
             update_payload.url, update_payload.payload, printout=False, dryrun=True
         )
 
+    def test_explain_list_with_bank_transaction(self):
+        """Test explain_list with bank_transaction set on ExplanationPayload."""
+        self.api.explain_transaction = MagicMock()
+
+        # Mock parent.get_api to return a dummy bank transaction
+        mock_tx = MagicMock()
+        mock_tx.bank_transaction = {"bank_account": "http://bank/acc/1"}
+        self.parent.get_api.return_value = [mock_tx]
+
+        # Mock parent.bank_account.get_name_by_uri
+        self.parent.bank_account.get_name_by_uri.return_value = "Business Account"
+
+        explanation_payload = ExplanationPayload(
+            nominal_code="001",
+            dated_on="2023-01-01",
+            gross_value=100,
+            bank_transaction="https://api.freeagent.com/v2/bank_transactions/123",
+        )
+
+        self.api.explain_list([explanation_payload], dryrun=True)
+
+        # Verify get_api was called to fetch transaction details
+        self.parent.get_api.assert_called_with("bank_transactions/123")
+        self.parent.bank_account.get_name_by_uri.assert_called_with("http://bank/acc/1")
+        self.api.explain_transaction.assert_called_once_with(
+            explanation_payload, printout=False, dryrun=True
+        )
+
     def test_explain_list_with_separator(self):
         """Test explain_list with a custom separator."""
         # Mock explain_transaction

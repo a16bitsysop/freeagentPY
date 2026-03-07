@@ -182,6 +182,13 @@ class BankAPI(FreeAgentBase):
             elif isinstance(item, ExplanationPayload):
                 payload = item
                 desc = "New"
+                if payload.bank_transaction:
+                    bank_tx = self.parent.get_api(
+                        payload.bank_transaction.removeprefix(self.parent.api_base_url)
+                    )
+                    bank_uri = bank_tx[0].bank_transaction["bank_account"]
+                    update = self.parent.bank_account.get_name_by_uri(bank_uri)
+                    table.title = f"Explanation for {update} transaction"
                 self.explain_transaction(item, printout=False, dryrun=dryrun)
 
             else:
