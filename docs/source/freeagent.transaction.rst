@@ -1,7 +1,8 @@
-freeagent.transaction
-=====================
+TransactionAPI Class
+====================
 
-.. automodule:: freeagent.transaction
+.. currentmodule:: freeagent.transaction
+.. autoclass:: TransactionAPI
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
