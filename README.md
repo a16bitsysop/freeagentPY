@@ -6,25 +6,27 @@
 
 Create an API app entry at the [Freeagent Dev Portal](https://dev.freeagent.com)
 
-## Exmple
+## Example
 
 ```python
 from os import environ
+from pathlib import Path
 import json
 
 from freeagent import FreeAgent
 
+TOKEN_PATH = Path.home() / ".config" / "freeagent" / "token.json"
+
 def _load_token():
-    with open("token.json", "r") as f:
-        token = json.load(f)
+    try:
+        return json.loads(TOKEN_PATH.read_text())
     except (FileNotFoundError, json.JSONDecodeError):
-        token = None
-    return token
+        return None
 
 def _save_token(token_data):
     # save the token
-    with open("token.json", "w") as f:
-        json.dump(token_data, f)
+    TOKEN_PATH.parent.mkdir(parents=True, exist_ok=True)
+    TOKEN_PATH.write_text(json.dumps(token_data, indent=2))
 
 client_id = environ["FREEAGENT_ID"]
 client_secret = environ["FREEAGENT_SECRET"]

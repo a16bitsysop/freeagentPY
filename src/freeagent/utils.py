@@ -16,7 +16,9 @@ def _infer_type(value: Any) -> Any:
     :return: The type of the value
     """
     inferred_type = Any
-    if isinstance(value, int):
+    if isinstance(value, bool):
+        inferred_type = bool
+    elif isinstance(value, int):
         inferred_type = int
     elif isinstance(value, float):
         inferred_type = Decimal
@@ -96,6 +98,26 @@ def make_dataclass_from_dict(class_name: str, data: dict, field_types: dict = No
             if k in data_class.__dataclass_fields__
         }
     )
+
+
+def singularize(word: str) -> str:
+    """
+    Return a singular form of a plural API key for use as a class name.
+
+    Handles the common English plural endings returned by the FreeAgent API:
+    'ies' -> 'y', and 'ses'/'xes'/'zes'/'ches'/'shes' drop 'es'.
+
+    :param word: plural word to singularize (e.g. 'bank_transactions')
+
+    :return: singular form (e.g. 'bank_transaction')
+    """
+    if word.endswith("ies") and len(word) > 3:
+        return word[:-3] + "y"
+    if word.endswith(("ses", "xes", "zes", "ches", "shes")):
+        return word[:-2]
+    if word.endswith("ss"):
+        return word
+    return word.rstrip("s")
 
 
 def list_to_dataclasses(class_name: str, data_list: list) -> list:

@@ -14,8 +14,7 @@ class TransactionAPI(FreeAgentBase):
         """
         Initialize the class
 
-        :param api_base_url: the url to use for requests, defaults to normal but
-            can be changed to sandbox
+        :param parent: the main FreeAgent instance
         """
         self.parent = parent  # the main FreeAgent instance
 

@@ -1,5 +1,5 @@
 """
-This module provides the BankAPI class to retreive information
+This module provides the BankAPI class to retrieve information
 about bank accounts on freeagent
 """
 
@@ -15,7 +15,7 @@ from .payload import ExplanationPayload, UpdatePayload
 
 class BankAPI(FreeAgentBase):
     """
-    BankAPI class to retreive information
+    BankAPI class to retrieve information
     about bank accounts on freeagent
 
     Initialize the base class
@@ -32,7 +32,7 @@ class BankAPI(FreeAgentBase):
 
     def _check_file_size(self, path: Path) -> int:
         """
-        Helper funtion to check file size for attaching files to explanations
+        Helper function to check file size for attaching files to explanations
 
         :param path: pathlike Path of the file to check
 
@@ -96,6 +96,7 @@ class BankAPI(FreeAgentBase):
         - application/x-pdf
 
         :param payload: ExplanationPayload to add the file to
+        :param path: path of the file to attach
         :param description: optional description to use for the file on freeagent
         """
         file_data = self._encode_file_base64(path)
@@ -115,8 +116,8 @@ class BankAPI(FreeAgentBase):
         Post the explanation to freeagent in the passed ExplanationPayload tx_obj
 
         :param tx_obj: ExplanationPayload to use
-        :param printout: Print out the desciption and gross value
-        :param dry_run: if True then do not post to freeagent, only print details
+        :param printout: Print out the description and gross value
+        :param dryrun: if True then do not post to freeagent, only print details
         """
         json_data = self.serialize_for_api(tx_obj)
 
@@ -141,8 +142,8 @@ class BankAPI(FreeAgentBase):
 
         :param url: url attribute of the bank transaction explanation to change
         :param tx_obj: ExplanationPayload to use for updating the explanation
-        :param printout: Print out the desciption and gross value
-        :param dry_run: if True then do not post to freeagent, only print details
+        :param printout: Print out the description and gross value
+        :param dryrun: if True then do not post to freeagent, only print details
         """
         json_data = self.serialize_for_api(tx_obj)
 

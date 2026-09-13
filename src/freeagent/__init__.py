@@ -22,7 +22,7 @@ class FreeAgent(FreeAgentBase):
     """
 
     def __init__(self):
-        super().__init__()  # initialse base class
+        super().__init__()  # initialise base class
         self.bank_account = BankAccountAPI(self)
         self.bank = BankAPI(self)
         self.category = CategoryAPI(self)

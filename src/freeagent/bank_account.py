@@ -1,6 +1,6 @@
 """
-Class for getting freeagent bank accounts
-bank accounts are cached after first run
+Class for getting freeagent bank accounts.
+Bank accounts are cached after first run.
 """
 
 from .base import FreeAgentBase
