@@ -3,18 +3,15 @@ Base class the other class inherit from
 """
 
 import secrets
-from dataclasses import asdict, is_dataclass
-from datetime import date, datetime
-from decimal import Decimal
 from typing import Any, Dict, List, Optional
 from webbrowser import open as open_browser
 
 from requests_oauthlib import OAuth2Session
 
-from .oauth_callback import receive_oauth_code, redirect_uri
-from .utils import make_dataclass_from_dict, singularize
+from .oauth_callback import callback_port, receive_oauth_code, redirect_uri
+from .utils import make_dataclass_from_dict, serialize_for_api, singularize
 
-OAUTH_CALLBACK_PORT = 8080
+DEFAULT_API_BASE_URL = "https://api.freeagent.com/v2/"
 OAUTH_CALLBACK_PATH = "/callback"
 
 
@@ -25,7 +22,7 @@ class FreeAgentBase:
 
     def __init__(
         self,
-        api_base_url: str = "https://api.freeagent.com/v2/",
+        api_base_url: str = DEFAULT_API_BASE_URL,
     ):
         """
         Initialize the base class
@@ -56,9 +53,8 @@ class FreeAgentBase:
         :raises ValueError: if neither oauth_secret nor token is provided
         """
         token_url = self.api_base_url + "token_endpoint"
-        callback_uri = redirect_uri(
-            port=OAUTH_CALLBACK_PORT, callback_path=OAUTH_CALLBACK_PATH
-        )
+        port = callback_port()
+        callback_uri = redirect_uri(port=port, callback_path=OAUTH_CALLBACK_PATH)
         state = secrets.token_urlsafe(32)
 
         extra = {"client_id": oauth_ident, "client_secret": oauth_secret}
@@ -84,7 +80,7 @@ class FreeAgentBase:
             print("🔐 Open this URL and authorise the app:", auth_url)
             open_browser(auth_url)
 
-            auth_code = receive_oauth_code(state, port=OAUTH_CALLBACK_PORT)
+            auth_code = receive_oauth_code(state, port=port)
             if auth_code is None:
                 raise RuntimeError(
                     "No browser callback received. Check that the redirect URI "
@@ -125,21 +121,7 @@ class FreeAgentBase:
 
         :return: API-compatible dict
         """
-        if is_dataclass(obj):
-            obj = asdict(obj)
-
-        def convert(val):
-            if isinstance(val, Decimal):
-                return str(val)
-            if isinstance(val, (date, datetime)):
-                return val.isoformat()
-            if isinstance(val, dict):
-                return {k: convert(v) for k, v in val.items()}
-            if isinstance(val, list):
-                return [convert(i) for i in val]
-            return val
-
-        return {k: convert(v) for k, v in obj.items() if v is not None}
+        return serialize_for_api(obj)
 
     def get_api(
         self, endpoint: str, params: Optional[Dict[str, Any]] = None
@@ -169,6 +151,9 @@ class FreeAgentBase:
 
         if not isinstance(json_data, dict) or key not in json_data:
             return [make_dataclass_from_dict(class_name, json_data)]
+
+        if isinstance(json_data[key], dict):
+            return [make_dataclass_from_dict(class_name, json_data[key])]
 
         items = [
             make_dataclass_from_dict(class_name, item)

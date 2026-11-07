@@ -9,24 +9,21 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 
-from .base import FreeAgentBase
 from .payload import ExplanationPayload, UpdatePayload
+from .utils import serialize_for_api
 
 
-class BankAPI(FreeAgentBase):
+class BankAPI:
     """
     BankAPI class to retrieve information
     about bank accounts on freeagent
-
-    Initialize the base class
-
-    :param api_base_url: the url to use for requests, defaults to normal but
-        can be changed to sandbox
     """
 
-    def __init__(self, parent):  # pylint: disable=super-init-not-called
+    def __init__(self, parent):
         """
         Initialize the BankAPI class
+
+        :param parent: the main FreeAgent instance
         """
         self.parent = parent  # the main FreeAgent instance
 
@@ -119,10 +116,10 @@ class BankAPI(FreeAgentBase):
         :param printout: Print out the description and gross value
         :param dryrun: if True then do not post to freeagent, only print details
         """
-        json_data = self.serialize_for_api(tx_obj)
+        json_data = serialize_for_api(tx_obj)
 
         if printout:
-            print(json_data["description"], json_data.get("gross_value"))
+            print(json_data.get("description"), json_data.get("gross_value"))
         if not dryrun:
             self.parent.post_api(
                 "bank_transaction_explanations",
@@ -145,10 +142,10 @@ class BankAPI(FreeAgentBase):
         :param printout: Print out the description and gross value
         :param dryrun: if True then do not post to freeagent, only print details
         """
-        json_data = self.serialize_for_api(tx_obj)
+        json_data = serialize_for_api(tx_obj)
 
         if printout:
-            print(json_data["description"], json_data.get("gross_value"))
+            print(json_data.get("description"), json_data.get("gross_value"))
         if not dryrun:
             self.parent.put_api(url, "bank_transaction_explanation", json_data)
 

@@ -3,16 +3,15 @@ Class for getting freeagent categories
 categories are cached after first run
 """
 
-from .base import FreeAgentBase
 from .utils import list_to_dataclasses
 
 
-class CategoryAPI(FreeAgentBase):
+class CategoryAPI:
     """
     The CategoryAPI class
     """
 
-    def __init__(self, parent):  # pylint: disable=super-init-not-called
+    def __init__(self, parent):
         """
         Initialize the class
         """

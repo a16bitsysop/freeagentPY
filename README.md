@@ -34,14 +34,9 @@ client_secret = environ["FREEAGENT_SECRET"]
 token = _load_token()
 
 freeagent_client = FreeAgent()
-freeagent_client.authenticate(client_id, client_secret ,_save_token, token)
+freeagent_client.authenticate(client_id, client_secret, _save_token, token)
 
-main_response = freeagent_client.get_api("users/me")
-print(
-f"✅ Authenticated! User info: {main_response['user']['first_name']} {main_response['user']['last_name']}"
-)
-
-paypal_id = freeagent_client.bank.get_first_paypal_id()
+paypal_id = freeagent_client.bank_account.get_first_paypal_id()
 paypal_data = freeagent_client.bank.get_unexplained_transactions(paypal_id)
 ```
 

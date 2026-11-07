@@ -2,15 +2,13 @@
 Class for getting freeagent transactions
 """
 
-from .base import FreeAgentBase
 
-
-class TransactionAPI(FreeAgentBase):
+class TransactionAPI:  # pylint: disable=too-few-public-methods
     """
     The TransactionAPI class
     """
 
-    def __init__(self, parent):  # pylint: disable=super-init-not-called
+    def __init__(self, parent):
         """
         Initialize the class
 
