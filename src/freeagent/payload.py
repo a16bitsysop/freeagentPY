@@ -19,7 +19,7 @@ class ExplanationPayload:
     gross_value: Decimal  # Required
     description: Optional[str] = None  # Optional
     bank_transaction: Optional[str] = None  # Required for new explanations
-    attachment: Optional[Dict] = None
+    attachment: Optional[Dict[str, str]] = None
     transfer_bank_account: Optional[str] = None
 
 

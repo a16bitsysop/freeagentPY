@@ -34,7 +34,7 @@ jobs:
       - name: 🧪 Run pytest with coverage
         run: |
           coverage run -m pytest
-          coverage report -m --omit=src/freeagent/base.py
+          coverage report -m
 
       - name: Run markdownlint
         uses: DavidAnson/markdownlint-cli2-action@v24
