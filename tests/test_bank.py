@@ -5,7 +5,9 @@ Covers file handling, transaction explanations, ID lookups, and API integrations
 
 # pylint: disable=protected-access, too-few-public-methods
 import unittest
-from unittest.mock import MagicMock
+from datetime import date
+from decimal import Decimal
+from unittest.mock import MagicMock, patch
 from pathlib import Path
 import tempfile
 import os
@@ -97,38 +99,72 @@ class BankAPITestCase(unittest.TestCase):
     def test_explain_transaction_dryrun(self):
         """Test dry-run mode for explaining a transaction."""
         payload = DummyPayload()
-        self.api.serialize_for_api = MagicMock(
-            return_value={"description": "desc", "gross_value": 111}
+        patcher = patch(
+            "freeagent.bank.serialize_for_api",
+            return_value={"description": "desc", "gross_value": 111},
         )
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.api.explain_transaction(payload, dryrun=True)
         self.parent.post_api.assert_not_called()
 
     def test_explain_transaction_real(self):
         """Test real mode posts the explanation to parent API."""
         payload = DummyPayload()
-        self.api.serialize_for_api = MagicMock(
-            return_value={"description": "desc", "gross_value": 111}
+        patcher = patch(
+            "freeagent.bank.serialize_for_api",
+            return_value={"description": "desc", "gross_value": 111},
         )
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.api.explain_transaction(payload, dryrun=False)
         self.parent.post_api.assert_called_once()
 
     def test_explain_update_dryrun(self):
         """Test dry-run mode for updating an explanation."""
         payload = DummyPayload()
-        self.api.serialize_for_api = MagicMock(
-            return_value={"description": "desc", "gross_value": 111}
+        patcher = patch(
+            "freeagent.bank.serialize_for_api",
+            return_value={"description": "desc", "gross_value": 111},
         )
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.api.explain_update("url", payload, dryrun=True)
         self.parent.put_api.assert_not_called()
 
     def test_explain_update_real(self):
         """Test real mode updates the explanation in parent API."""
         payload = DummyPayload()
-        self.api.serialize_for_api = MagicMock(
-            return_value={"description": "desc", "gross_value": 111}
+        patcher = patch(
+            "freeagent.bank.serialize_for_api",
+            return_value={"description": "desc", "gross_value": 111},
         )
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.api.explain_update("url", payload, dryrun=False)
         self.parent.put_api.assert_called_once()
+
+    def test_explain_transaction_without_description_prints(self):
+        """Test printout works when the optional description is not set."""
+        payload = ExplanationPayload(
+            nominal_code="250",
+            dated_on=date(2026, 1, 1),
+            gross_value=Decimal("5.00"),
+        )
+        with patch("builtins.print") as mock_print:
+            self.api.explain_transaction(payload, printout=True, dryrun=True)
+        mock_print.assert_called_once_with(None, "5.00")
+
+    def test_explain_update_without_description_prints(self):
+        """Test explain_update printout works when the description is not set."""
+        payload = ExplanationPayload(
+            nominal_code="250",
+            dated_on=date(2026, 1, 1),
+            gross_value=Decimal("5.00"),
+        )
+        with patch("builtins.print") as mock_print:
+            self.api.explain_update("url", payload, printout=True, dryrun=True)
+        mock_print.assert_called_once_with(None, "5.00")
 
     def test_explain_list(self):
         """Test explain_list iterates and calls appropriate methods."""

@@ -1,9 +1,11 @@
 """This module provides utility functions for the FreeAgent API client."""
 
-from dataclasses import make_dataclass
+from dataclasses import asdict, is_dataclass, make_dataclass
 from decimal import Decimal
 from datetime import date, datetime
+from functools import lru_cache
 from typing import Optional, Any
+import keyword
 import re
 
 
@@ -61,9 +63,35 @@ def _convert_value(value: Any, target_type: Any) -> Any:
     return value
 
 
+def _field_name(name: str) -> str:
+    """
+    Return a dataclass-safe field name, adding a trailing underscore to keywords
+
+    :param name: the key from the API response
+
+    :return: the field name to use on the dataclass
+    """
+    return f"{name}_" if keyword.iskeyword(name) else name
+
+
+@lru_cache(maxsize=None)
+def _dataclass_for(class_name: str, fields: tuple) -> type:
+    """
+    Return the dataclass for a name and field set, creating it once and reusing it
+
+    :param class_name: The name to use for the dataclass
+    :param fields: tuple of (name, type, default) entries
+
+    :return: the dataclass type
+    """
+    return make_dataclass(class_name, list(fields))
+
+
 def make_dataclass_from_dict(class_name: str, data: dict, field_types: dict = None):
     """
     Dynamically create a dataclass from a dictionary, with optional type conversions.
+
+    Dataclasses are cached by name and fields, so items with the same shape share a class.
 
     :param class_name: The name to use for the dataclass
     :param data: The data to turn into a dataclass
@@ -77,16 +105,16 @@ def make_dataclass_from_dict(class_name: str, data: dict, field_types: dict = No
     }
     final_field_types = {**inferred_types, **field_types}
 
-    fields_to_create = [
-        (name, Optional[f_type], None)
+    fields_to_create = tuple(
+        (_field_name(name), Optional[f_type], None)
         for name, f_type in final_field_types.items()
         if name.isidentifier()
-    ]
+    )
 
-    data_class = make_dataclass(class_name, fields_to_create)
+    data_class = _dataclass_for(class_name, fields_to_create)
 
     converted_data = {
-        key: _convert_value(value, final_field_types.get(key))
+        _field_name(key): _convert_value(value, final_field_types.get(key))
         for key, value in data.items()
         if key in final_field_types
     }
@@ -98,6 +126,31 @@ def make_dataclass_from_dict(class_name: str, data: dict, field_types: dict = No
             if k in data_class.__dataclass_fields__
         }
     )
+
+
+def serialize_for_api(obj) -> dict:
+    """
+    Convert dataclasses or dicts with Decimal, date, etc. into plain API-compatible dicts
+
+    :param obj: dataclass or dict to convert
+
+    :return: API-compatible dict
+    """
+    if is_dataclass(obj):
+        obj = asdict(obj)
+
+    def convert(val):
+        if isinstance(val, Decimal):
+            return str(val)
+        if isinstance(val, (date, datetime)):
+            return val.isoformat()
+        if isinstance(val, dict):
+            return {k: convert(v) for k, v in val.items()}
+        if isinstance(val, list):
+            return [convert(i) for i in val]
+        return val
+
+    return {k: convert(v) for k, v in obj.items() if v is not None}
 
 
 def singularize(word: str) -> str:

@@ -3,15 +3,13 @@ Class for getting freeagent bank accounts.
 Bank accounts are cached after first run.
 """
 
-from .base import FreeAgentBase
 
-
-class BankAccountAPI(FreeAgentBase):
+class BankAccountAPI:
     """
     The BankAccountAPI class
     """
 
-    def __init__(self, parent):  # pylint: disable=super-init-not-called
+    def __init__(self, parent):
         """
         Initialize the class
         """

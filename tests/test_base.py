@@ -74,6 +74,32 @@ class FreeAgentBaseTestCase(unittest.TestCase):
             params={"page": 1, "per_page": 100},
         )
 
+    def test_get_api_grouped_dict_response(self):
+        """Test a response whose key maps to an object of grouped lists."""
+        response = MagicMock()
+        response.json.return_value = {
+            "categories": {
+                "income_categories": [{"description": "Sales", "nominal_code": "001"}],
+                "admin_expenses_categories": [
+                    {"description": "Rent", "nominal_code": "100"}
+                ],
+            }
+        }
+        self.api.session = MagicMock()
+        self.api.session.get.return_value = response
+
+        result = self.api.get_api("categories")
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(
+            result[0].income_categories[0]["description"],
+            "Sales",
+        )
+        self.assertEqual(
+            result[0].admin_expenses_categories[0]["nominal_code"],
+            "100",
+        )
+
     def test_get_api_pagination(self):
         """Test that a full page of 100 triggers fetching the next page."""
         page1 = MagicMock()
@@ -210,6 +236,26 @@ class FreeAgentBaseTestCase(unittest.TestCase):
         mock_receive.assert_called_once()
         mock_fetch.assert_called_once()
         save_cb.assert_called_once_with({"access_token": "new"})
+
+    def test_authenticate_loopback_honours_oauth_port(self):
+        """Test that OAUTH_PORT sets the loopback port and the redirect URI."""
+        user = MagicMock(user={"first_name": "Ada", "last_name": "Lovelace"})
+        with (
+            patch.dict("os.environ", {"OAUTH_PORT": "9000"}),
+            patch("builtins.print"),
+            patch("freeagent.base.open_browser"),
+            patch(
+                "freeagent.base.receive_oauth_code", return_value="auth123"
+            ) as mock_receive,
+            patch(
+                "freeagent.base.OAuth2Session.fetch_token",
+                return_value={"access_token": "new"},
+            ),
+            patch.object(self.api, "get_api", return_value=[user]),
+        ):
+            self.api.authenticate("ident", "secret", MagicMock())
+
+        self.assertEqual(mock_receive.call_args.kwargs["port"], 9000)
 
     def test_authenticate_callback_timeout(self):
         """Test that a missing browser callback raises RuntimeError."""

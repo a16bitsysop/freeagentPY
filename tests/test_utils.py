@@ -11,6 +11,7 @@ from freeagent.utils import (
     _infer_type,
     list_to_dataclasses,
     make_dataclass_from_dict,
+    serialize_for_api,
     singularize,
 )
 
@@ -107,6 +108,33 @@ class MakeDataclassTest(unittest.TestCase):
 
         objs = list_to_dataclasses("Category", [{"id": 1}, {"id": 2}, "not-a-dict"])
         self.assertEqual(len(objs), 2)
+
+    def test_keyword_keys_get_trailing_underscore(self):
+        """Test keys that are Python keywords are kept with a trailing underscore."""
+
+        obj = make_dataclass_from_dict("Thing", {"from": "2023-01-01", "ok": 2})
+        self.assertEqual(obj.from_, date(2023, 1, 1))
+        self.assertEqual(obj.ok, 2)
+
+    def test_same_shape_shares_class(self):
+        """Test items with the same fields reuse one dataclass type."""
+
+        first = make_dataclass_from_dict("Item", {"id": 1})
+        second = make_dataclass_from_dict("Item", {"id": 2})
+        self.assertIs(type(first), type(second))
+        self.assertIsInstance(second, type(first))
+
+
+class SerializeForApiTest(unittest.TestCase):
+    """Tests for the serialize_for_api helper."""
+
+    def test_converts_values_and_drops_none(self):
+        """Test Decimal and date values become strings and None is dropped."""
+
+        result = serialize_for_api(
+            {"amount": Decimal("1.50"), "dated_on": date(2023, 1, 1), "skip": None}
+        )
+        self.assertEqual(result, {"amount": "1.50", "dated_on": "2023-01-01"})
 
 
 if __name__ == "__main__":

@@ -87,6 +87,11 @@ class _OAuthCallbackServer(http.server.HTTPServer):
         _OAuthCallbackHandler.code = None
 
 
+def callback_port() -> int:
+    """Return the loopback port from ``OAUTH_PORT``, or the default port."""
+    return int(os.environ.get("OAUTH_PORT", str(DEFAULT_PORT)))
+
+
 def redirect_uri(port: int = DEFAULT_PORT, callback_path: str = "") -> str:
     """Return the redirect URI the provider must send the browser to.
 
@@ -116,7 +121,7 @@ def receive_oauth_code(
 
     :raises RuntimeError: if the loopback port is already bound.
     """
-    port = port or int(os.environ.get("OAUTH_PORT", str(DEFAULT_PORT)))
+    port = port or callback_port()
     try:
         server = _OAuthCallbackServer((LOOPBACK_HOST, port), state)
     except OSError as exc:
